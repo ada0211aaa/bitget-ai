@@ -1,0 +1,22 @@
+# Bitget AI Hackathon - US Stock AI Trading
+
+This repository is for a Bitget AI Base Camp Hackathon S1 project in the **US Stock AI Trading** track.
+
+The project direction is a minimal **AI tech stock news sentiment strategy** built primarily with Bitget-provided tools:
+
+- Bitget Playbook for natural-language strategy creation, backtesting, publishing, and metrics.
+- Bitget Agent Hub skills for news, macro, technical, sentiment, and market-intelligence signals.
+
+The first version is requirements-first and simulation/backtest-only. It does not contain API keys, live trading credentials, or a live execution engine.
+
+## Current Documents
+
+- [Project rules](./AGENTS.md)
+- [Requirements draft](./docs/requirements/2026-06-07-bitget-playbook-ai-tech-stock-strategy.md)
+- [AI session recaps](./docs/ai-sessions/)
+
+## Safety Notes
+
+- Do not commit real Playbook API keys, Bitget API keys, secrets, passphrases, private keys, or full account data.
+- Use placeholders such as `<PLAYBOOK_API_KEY>` in docs.
+- Keep the first demo focused on backtest or simulated trading evidence.
