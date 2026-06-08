@@ -1,16 +1,23 @@
 # Trading Strategy
 
-Strategy theme: daily AI tech stock / tokenized US stock strategy.
+Strategy theme: daily AI tech stock USDT perpetual strategy.
+
+Asset scope:
+
+- Use Bitget-listed stock USDT perpetual contracts / stock futures.
+- Examples use symbols such as `NVDAUSDT`, `MSFTUSDT`, `GOOGLUSDT`, `AMDUSDT`, and `METAUSDT`.
+- Do not describe these assets as traditional US stock spot positions.
+- The first version should focus on 20-30 AI/technology-related contracts rather than the full stock-contract list.
 
 Candidate pool:
 
-- NVDA
-- MSFT
-- GOOGL
-- AMD
-- META
+- `NVDAUSDT`
+- `MSFTUSDT`
+- `GOOGLUSDT`
+- `AMDUSDT`
+- `METAUSDT`
 
-Actual assets depend on Bitget Playbook support.
+Actual assets depend on Bitget and Playbook support.
 
 Decision flow:
 

@@ -1,6 +1,6 @@
 # Architecture Docs
 
-This folder explains how the project is organized and why the first version stays documentation-first.
+This folder explains how the project is organized and why the current version stays backtest-only, Playbook-first, and safe from live execution.
 
 Planned docs:
 

@@ -1,8 +1,30 @@
 # Folder Structure
 
-The first version uses documentation folders only.
+The first confirmed requirements phase used documentation folders only. The implementation phase now adds a small local backtest CLI while keeping live trading, Web/API, notifications, and schedulers out of scope.
 
 ```text
+configs/
+├── default_universe.json
+│
+src/
+└── bitget_ai_backtest/
+    ├── cli.py
+    ├── config.py
+    ├── bitget_client.py
+    ├── indicators.py
+    ├── strategy.py
+    ├── backtester.py
+    ├── reporting.py
+    └── models.py
+│
+tests/
+├── fixtures/
+└── test_*.py
+│
+reports/
+├── local-demo/
+└── latest/
+│
 docs/
 ├── architecture/
 ├── bitget-skills/
@@ -14,4 +36,4 @@ docs/
 └── ai-sessions/
 ```
 
-Business code folders such as `src/`, `configs/`, `data_sources/`, `core/`, `storage/`, `web_api/`, `notifications/`, and `scheduler/` are future-only and require a separate implementation plan.
+No API keys, live execution engine, Web/API service, notification service, database, or scheduler is included.

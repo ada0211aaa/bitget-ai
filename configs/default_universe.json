@@ -1,0 +1,10 @@
+{
+  "symbols": ["NVDAUSDT", "MSFTUSDT", "GOOGLUSDT", "AMDUSDT", "METAUSDT"],
+  "granularity": "15m",
+  "limit": 200,
+  "initial_cash": 10000,
+  "trade_fraction": 0.25,
+  "fee_rate": 0.0006,
+  "macro_mode": "neutral",
+  "news_bias": "neutral"
+}

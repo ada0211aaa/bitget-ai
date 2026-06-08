@@ -1,0 +1,2 @@
+timestamp_ms,symbol,side,price,quantity,fee,reason
+1780916400000,NVDAUSDT,buy,209.66000000,23.848135075837,0.00000000,cautiously_bullish

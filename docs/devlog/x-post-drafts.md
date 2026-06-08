@@ -4,7 +4,7 @@
 
 I’m joining #BitgetHackathon in the US Stock AI Trading track.
 
-My project is a Bitget Playbook strategy for AI tech stocks, combining news, macro context, and technical confirmation.
+My project is a Bitget Playbook strategy for AI tech stock USDT perpetual contracts, combining news, macro context, and technical confirmation.
 
 Built with Bitget Playbook and Bitget Agent Hub skills.
 
@@ -14,7 +14,7 @@ Built with Bitget Playbook and Bitget Agent Hub skills.
 
 Dev log for #BitgetHackathon:
 
-I’m designing a cautious daily AI tech stock strategy:
+I’m designing a cautious daily AI tech stock futures strategy:
 
 - news-briefing for earnings and AI compute demand
 - macro-analyst for Fed/rate/risk context
@@ -29,6 +29,6 @@ Final showcase for #BitgetHackathon:
 
 US Stock AI Trading Playbook Agent.
 
-A cautious AI tech stock strategy that combines news, macro, and technical signals, then validates the idea with Bitget Playbook backtesting.
+A cautious AI tech stock futures strategy that combines news, macro, and technical signals, then validates the idea with Bitget Playbook backtesting.
 
 @Bitget_AI

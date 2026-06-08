@@ -7,7 +7,7 @@
 1. `superpowers:brainstorming`
    - 已澄清赛道、工具优先级、策略方向、实现边界和安全边界。
 2. `writing-requirements-docs`
-   - 当前阶段只写需求文档和项目初始化文件，不写业务代码、不配置密钥、不运行交易。
+   - 需求确认前只写需求文档和项目初始化文件；用户确认后进入本地回测实现阶段。
 3. `superpowers:verification-before-completion`
    - 交付前检查文档结构、占位符、敏感信息、验收标准和 Git 状态。
 
@@ -15,7 +15,7 @@
 
 - 需求名称：Bitget Playbook AI 科技股新闻情绪策略
 - 所属项目：`/Users/ada/Documents/bitget ai`
-- 文档状态：草案，待用户确认
+- 文档状态：已确认，已进入本地回测实现阶段
 - 需求来源：用户口述 + Bitget AI Base Camp Hackathon S1 官方规则
 - 创建日期：2026-06-07
 - 最近更新：2026-06-08
@@ -28,10 +28,12 @@
 
 为了降低实现复杂度和安全风险，本轮优先使用 Bitget 现成能力，而不是从零搭建新闻爬虫、交易执行器或复杂 Web 产品。
 
+本项目所说的“美股相关资产”，第一版特指 Bitget 已上线的股票类 USDT 永续合约 / stock futures / RWA 股票合约，例如 `NVDAUSDT`、`AAPLUSDT`、`MSFTUSDT` 等。它们不是传统美股现货，也不代表接入了全市场 NYSE / Nasdaq 原始现货行情。
+
 ## 3. 目标
 
 1. 形成一个可参赛的最小方案：用 Bitget Playbook 创建、回测并发布一个 AI 科技股交易策略。
-2. 策略主题聚焦 AI 科技股，例如 NVDA、MSFT、GOOGL、AMD、META 或 Playbook 支持的对应美股代币化资产。
+2. 策略主题聚焦 AI 科技股，例如 NVDA、MSFT、GOOGL、AMD、META 或 Playbook 支持的对应 Bitget 股票类 USDT 永续合约。
 3. 策略性格为稳健型：新闻、宏观和趋势信号同向时才交易；信号冲突时优先观望。
 4. 所有核心工具优先使用 Bitget 现成能力，尤其是 Bitget Playbook 和 Bitget Agent Hub 官方 skills。
 5. 产出可用于提交和开发日记的材料：策略说明、回测指标、使用记录、公开展示文案草稿。
@@ -63,6 +65,7 @@
 | --- | --- | --- |
 | 文档模式 | 是 | 通过 README、需求文档、架构文档、策略文档和开发日记说明项目 |
 | Playbook 回测模式 | 是 | 用户拿到 Playbook API Key 后，手动触发 Playbook 创建策略、回测和发布 |
+| 本地公开数据回测模式 | 是 | 使用 Bitget 公开股票类 USDT 永续合约 K 线生成本地 backtest-only 报告 |
 | 模拟 / 纸面记录模式 | 可选 | 只记录回测或模拟结果，不连接真实资金 |
 | 自动通知模式 | 否 | 第一版不自动发 Telegram、Email 或其他通知 |
 | 定时任务模式 | 否 | 第一版不启动任何后台定时任务 |
@@ -71,6 +74,7 @@
 ## 5.2 Dry-run 与正式运行边界
 
 - Dry-run / 文档验证：检查文档结构、策略口径、回测记录模板和提交材料，不访问真实账户，不触发交易。
+- 本地公开数据回测：通过 `python3 -m bitget_ai_backtest.cli backtest` 拉取 Bitget 公开 K 线并生成本地报告；不使用 API Key，不读取账户，不下单。
 - Playbook 回测：只使用 Playbook 平台进行策略生成、回测和发布；Key 由用户临时输入或安全环境变量提供，不写入仓库。
 - 正式运行：本需求文档不定义实盘正式运行。若未来需要真实交易、定时任务、通知或 Web/API，必须另写需求文档和实施计划。
 
@@ -114,27 +118,28 @@
 
 ## 7. 脚本与系统架构草案
 
-本项目第一版采用文档型架构和 Bitget Playbook 优先方案。下图用于说明未来如果逐步脚本化时应如何拆层；它不是当前已实现代码，也不代表当前要启动数据库、Web/API、通知或定时任务。
+本项目第一版采用 Bitget Playbook 优先方案，并在用户确认需求后新增本地 backtest-only CLI。下图说明当前脚本化边界和未来如果继续产品化时应如何拆层；它不代表当前要启动数据库、Web/API、通知或定时任务。
 
 ```mermaid
 flowchart TD
     subgraph Entry["入口"]
         E1["README.md<br/>项目入口说明"]
         E2["docs/playbook/playbook-prompt.md<br/>Playbook 策略 Prompt"]
-        E3["后续可选 CLI 入口<br/>仅在实施计划确认后新增"]
+        E3["src/bitget_ai_backtest/cli.py<br/>本地回测 CLI"]
     end
 
     subgraph Config["配置"]
         C1["docs/strategy/*.md<br/>策略口径与可调规则"]
         C2["docs/bitget-skills/*.md<br/>Skill 使用说明"]
-        C3["环境变量占位说明<br/>不写真实 Key"]
+        C3["configs/default_universe.json<br/>公开 symbol 与回测参数"]
     end
 
     subgraph DataSources["数据源"]
         D1["Bitget Playbook<br/>历史数据 / 回测 / 发布"]
-        D2["Bitget news-briefing<br/>新闻与叙事"]
+        D2["Bitget public market API<br/>股票类 USDT 永续合约 K 线"]
+        D7["Bitget news-briefing<br/>新闻与叙事"]
         D3["Bitget macro-analyst<br/>Fed / DXY / VIX / Nasdaq"]
-        D4["Bitget technical-analysis<br/>趋势 / RSI / MACD / 均线"]
+        D4["Bitget technical-analysis<br/>股票类 USDT 永续合约 K 线<br/>趋势 / RSI / MACD / 均线"]
         D5["Bitget sentiment-analyst<br/>情绪与拥挤度辅助"]
         D6["Bitget market-intel<br/>机构 / ETF / 主题叙事辅助"]
     end
@@ -142,11 +147,11 @@ flowchart TD
     subgraph Database["数据库"]
         DB1["第一版不建数据库"]
         DB2["docs/playbook/backtest-record.md<br/>人工记录回测结果"]
-        DB3["未来可选 SQLite / CSV<br/>存信号快照与回测记录"]
+        DB3["reports/latest/*.md / *.csv<br/>本地回测报告与交易记录"]
     end
 
     subgraph Core["核心流程"]
-        P1["每日信号收集<br/>日线级"]
+        P1["公开 K 线收集<br/>15m 或配置周期"]
         P2["新闻指标提取<br/>财报/指引 + AI 芯片/算力需求"]
         P3["宏观风险判断<br/>risk-on / mixed / risk-off"]
         P4["技术趋势确认<br/>上涨 / 震荡 / 走弱"]
@@ -183,13 +188,15 @@ flowchart TD
 
     E1 --> E2
     E2 --> D1
+    E3 --> D2
     C1 --> P5
-    C2 --> D2
+    C2 --> D7
     C2 --> D3
     C2 --> D4
     C2 --> D5
     C2 --> D6
-    D2 --> P2
+    D2 --> P4
+    D7 --> P2
     D3 --> P3
     D4 --> P4
     D5 --> P6
@@ -202,6 +209,7 @@ flowchart TD
     P6 --> P7
     P7 --> D1
     D1 --> DB2
+    P7 --> DB3
     DB2 --> W2
     W2 --> N2
     DB2 --> Future
@@ -214,11 +222,11 @@ flowchart TD
 
 | 层级 | 第一版职责 | 当前状态 | 后续改造边界 |
 | --- | --- | --- | --- |
-| 入口 | 用 README 和 Playbook Prompt 作为人工入口 | 文档化 | 如需 CLI，先写实施计划 |
-| 配置 | 用策略文档和 skill 文档记录可调口径 | 文档化 | 不写真实密钥，不写实盘配置 |
-| 数据源 | 优先使用 Bitget Playbook 与 Agent Hub 官方 skills | 外部工具优先 | 不自建新闻爬虫 |
-| 数据库 | 第一版不建库，只记录回测结果 | 文档化 | 可后置 SQLite / CSV |
-| 核心流程 | 日线级信号收集、风控过滤、打分、五档观点 | 文档化 | 先模拟/回测，不接实盘 |
+| 入口 | README、Playbook Prompt、本地回测 CLI | 已有文档 + CLI | 不做自动后台任务 |
+| 配置 | 用策略文档、skill 文档和 `configs/default_universe.json` 记录可调口径 | 已有文档 + JSON 配置 | 不写真实密钥，不写实盘配置 |
+| 数据源 | 优先使用 Bitget Playbook、Agent Hub 官方 skills、Bitget 公开行情 API | 已实现公开 K 线回测 | 不自建新闻爬虫 |
+| 数据库 | 第一版不建库，只记录回测结果 | 已生成 `reports/` 报告 | 可后置 SQLite |
+| 核心流程 | 公开 K 线收集、风控过滤、打分、五档观点、本地回测 | 已有本地 backtest-only 实现 | 不接实盘 |
 | Web/API | 第一版用 GitHub 文档展示 | 不实现服务 | Dashboard 后置 |
 | 通知 | 第一版只准备开发日记草稿 | 不自动发送 | Telegram/Email 需明确批准 |
 | 定时任务 | 第一版手动触发 | 不启动后台任务 | 每日自动任务需明确批准 |
@@ -226,7 +234,7 @@ flowchart TD
 
 ### 7.2 分层架构树
 
-第一版以文档和 Bitget Playbook 为主，不开发前端、后端 API 或真实交易执行器。下面这棵树用于说明后续如果脚本化，职责应该如何分层。
+第一版以文档、Bitget Playbook 和本地 backtest-only CLI 为主，不开发前端、后端 API 或真实交易执行器。下面这棵树说明当前职责分层。
 
 ```text
 ┌─── 表示层 (Presentation Layer)
@@ -281,18 +289,41 @@ flowchart TD
      ├── 定时任务边界 (SchedulerBoundary)
      │    └── 第一版不启动定时任务；未来必须单独确认
      └── 未来依赖管理 (FutureDependencyPlan)
-          └── 如需 Python CLI、SQLite、Web/API，再单独写实施计划
+          └── 如需 SQLite、Web/API、通知或定时任务，再单独写实施计划
 ```
 
 ### 7.3 第一版文件夹排列
 
-第一版只创建和维护文档目录，不创建业务代码目录。下面是建议的 GitHub 仓库结构：
+第一版已在确认需求后新增本地回测代码。下面是当前 GitHub 仓库结构：
 
 ```text
 bitget-ai/
 ├── AGENTS.md
 ├── README.md
 ├── .gitignore
+├── pyproject.toml
+│
+├── configs/
+│   └── default_universe.json
+│
+├── src/
+│   └── bitget_ai_backtest/
+│       ├── cli.py
+│       ├── config.py
+│       ├── bitget_client.py
+│       ├── indicators.py
+│       ├── strategy.py
+│       ├── backtester.py
+│       ├── reporting.py
+│       └── models.py
+│
+├── tests/
+│   ├── fixtures/
+│   └── test_*.py
+│
+├── reports/
+│   ├── local-demo/
+│   └── latest/
 │
 └── docs/
     ├── requirements/
@@ -344,19 +375,7 @@ bitget-ai/
         └── 2026-06-07-会话复盘.md
 ```
 
-未来如果从文档型升级为脚本型，再按下面结构新增 `src/`，但该目录不属于第一版必须实现范围：
-
-```text
-src/
-├── entry/
-├── config/
-├── data_sources/
-├── core/
-├── storage/
-├── web_api/
-├── notifications/
-└── scheduler/
-```
+未来如果从本地 CLI 升级为产品型系统，再单独新增 `storage/`、`web_api/`、`notifications/`、`scheduler/` 等目录。
 
 ## 8. Bitget 工具使用要求
 
@@ -384,7 +403,7 @@ src/
 | --- | --- | --- |
 | `news-briefing` | 聚合 AI 科技股、半导体、云计算、财报、监管相关新闻，并总结利好/利空 | 高 |
 | `macro-analyst` | 判断美联储、利率、DXY、VIX、纳指环境是否支持 risk-on | 高 |
-| `technical-analysis` | 用趋势、均线、RSI、MACD 等指标确认价格方向 | 高 |
+| `technical-analysis` | 用 Bitget 股票类 USDT 永续合约 K 线计算趋势、均线、RSI、MACD 等指标，确认价格方向 | 高 |
 | `sentiment-analyst` | 辅助判断市场拥挤度和风险偏好 | 中 |
 | `market-intel` | 辅助查看机构、ETF 或资金叙事 | 中 |
 
@@ -397,11 +416,11 @@ src/
 | 输入项 | 来源 | 格式 | 是否必填 | 说明 |
 | --- | --- | --- | --- | --- |
 | 策略哲思 | 用户 | 自然语言 | 是 | 描述稳健型 AI 科技股策略 |
-| 标的范围 | 用户 / Playbook 支持范围 | 股票代码或代币化资产名称 | 是 | 初始偏向 NVDA、MSFT、GOOGL、AMD、META |
+| 标的范围 | 用户 / Bitget / Playbook 支持范围 | Bitget 股票类 USDT 永续合约 symbol | 是 | 初始偏向 `NVDAUSDT`、`MSFTUSDT`、`GOOGLUSDT`、`AMDUSDT`、`METAUSDT`；不是传统美股现货 |
 | Playbook API Key | Bitget 管理员 | 密钥字符串 | 执行阶段必填 | 只临时使用，不写入仓库 |
 | 新闻信号 | Bitget Agent Hub `news-briefing` | 摘要 / 关键词结果 | 可选但优先 | 用于判断 AI 科技股新闻利好/利空 |
 | 宏观信号 | Bitget Agent Hub `macro-analyst` | 分析结论 | 可选但优先 | 用于判断 risk-on / risk-off |
-| 技术信号 | Bitget Agent Hub `technical-analysis` | 指标结果 | 可选但优先 | 用于趋势确认 |
+| 技术信号 | Bitget Agent Hub `technical-analysis` | 指标结果 | 可选但优先 | 基于 Bitget 股票类 USDT 永续合约 K 线做趋势确认 |
 
 ### 输出
 
@@ -437,6 +456,11 @@ src/
   - `AGENTS.md`
   - `README.md`
   - `.gitignore`
+  - `pyproject.toml`
+  - `configs/`
+  - `src/bitget_ai_backtest/`
+  - `tests/`
+  - `reports/`
   - `docs/requirements/`
   - `docs/ai-sessions/`
 - 禁止修改：
@@ -447,12 +471,13 @@ src/
 
 ### 10.2 技术约束
 
-- 技术栈：第一版优先使用 Bitget Playbook 和 Bitget Agent Hub，暂不限定自写代码语言。
+- 技术栈：第一版优先使用 Bitget Playbook 和 Bitget Agent Hub；本地回测实现使用 Python 3.12 标准库和 pytest。
 - 运行环境：用户本机 + Bitget Playbook 平台。
 - 性能要求：无低延迟要求；不做高频交易。
 - 展示要求：提交材料必须真实、可核查、可公开展示。
 - 错误处理：Playbook Key 缺失、Skill Hub 权限不足、回测失败、新闻数据不可用时，不得伪造结果，必须记录失败原因和降级方式。
-- 日志要求：第一版以文档记录为主；后续若脚本化，日志必须脱敏，不打印 Key、账户 ID、资金明细或完整实盘策略参数。
+- 日志要求：第一版以文档和本地报告记录为主；CLI 不打印 Key、账户 ID、资金明细或完整实盘策略参数。
+- 数据口径：第一版不直接接入传统美股现货行情；只使用 Bitget 已上线并可由 Playbook / 官方行情能力支持的股票类 USDT 永续合约数据。
 
 ### 10.3 安全与敏感信息约束
 
@@ -467,7 +492,7 @@ src/
 
 推荐自然语言策略描述：
 
-> 该策略聚焦 AI 科技股和美股代币化资产，优先关注 NVDA、MSFT、GOOGL、AMD、META 等 AI 主线标的。策略结合 AI/科技新闻情绪、宏观 risk-on/risk-off 环境和技术趋势确认。只有当新闻叙事偏利好、宏观环境未明显转弱且价格趋势确认时才买入或加仓；当新闻利空、宏观转 risk-off 或趋势跌破关键均线时降低仓位或卖出；当信号冲突时优先观望，避免频繁交易和情绪化追涨。
+> 该策略聚焦 Bitget 已上线的 AI 科技股相关 USDT 永续合约，优先关注 `NVDAUSDT`、`MSFTUSDT`、`GOOGLUSDT`、`AMDUSDT`、`METAUSDT` 等 AI 主线标的。策略结合 AI/科技新闻情绪、宏观 risk-on/risk-off 环境和合约价格趋势确认。只有当新闻叙事偏利好、宏观环境未明显转弱且价格趋势确认时才买入或加仓；当新闻利空、宏观转 risk-off 或趋势跌破关键均线时降低仓位或卖出；当信号冲突时优先观望，避免频繁交易和情绪化追涨。本策略不直接接入传统美股现货行情。
 
 ## 12. 开发日记要求
 
@@ -504,13 +529,15 @@ src/
 | AC-9 | 敏感信息未写入 | 命令检查 | 扫描仓库，不发现真实密钥赋值、私钥文件或账户敏感数据 |
 | AC-10 | 架构图覆盖指定层级 | 人工检查 | Mermaid 图包含入口、配置、数据源、数据库、核心流程、Web/API、通知、定时任务、未来改造点 |
 | AC-11 | 分层树和文件夹排列清楚 | 人工检查 | 文档包含表示层、策略编排层、Bitget 工具服务层、数据与记录层、基础设施层，以及第一版文档目录结构 |
+| AC-12 | 本地回测 CLI 可运行 | 命令检查 | `PYTHONPATH=src python3 -m bitget_ai_backtest.cli demo --output-dir reports/local-demo` 成功生成报告 |
+| AC-13 | 公开数据回测可运行 | 命令检查 | `PYTHONPATH=src python3 -m bitget_ai_backtest.cli backtest --config configs/default_universe.json --output-dir reports/latest` 成功生成报告；如 API 临时不可用，保留 fixture demo 作为降级证据 |
 
 ## 14. 风险与回退
 
 | 风险 | 影响 | 预防方式 | 回退方式 |
 | --- | --- | --- | --- |
 | Playbook API Key 暂未拿到 | 无法实际创建和回测策略 | 先完成需求文档、策略 prompt、GitHub 仓库和开发日记 | 等拿到 Key 后再执行 Playbook |
-| Playbook 支持的美股标的范围不完全匹配 | 初始标的需要调整 | 需求中把标的写成“优先 NVDA 等，最终以 Playbook 支持范围为准” | 改用 Playbook 支持的相近 AI 科技资产 |
+| Playbook 支持的股票类 USDT 永续合约范围不完全匹配 | 初始标的需要调整 | 需求中把标的写成“优先 NVDAUSDT 等，最终以 Bitget / Playbook 支持范围为准” | 改用 Bitget 支持的相近 AI 科技合约 |
 | 新闻源不是实时 | 不适合高频抢跑 | 策略定位为稳健中低频，不做毫秒级新闻交易 | 降级为日内或日线级新闻情绪策略 |
 | 回测指标不好看 | 影响提交说服力 | 使用稳健策略并保留风险解释 | 调整策略哲思或改为更清晰的演示型回测 |
 | 误提交敏感信息 | 账户与资金风险 | `.gitignore`、提交前搜索敏感关键词 | 立即删除本地文件、重写 Git 历史、轮换密钥 |
@@ -521,13 +548,13 @@ src/
 
 | 失败角度 | 可能表现 | 需求文档中的预防设计 | 仍需后续补强 |
 | --- | --- | --- | --- |
-| Demo 失败 | 只有概念，没有可核查结果 | 要求 Playbook 回测记录、发布记录和截图说明 | 拿到 Playbook Key 后实际跑回测 |
+| Demo 失败 | 只有概念，没有可核查结果 | 要求本地回测报告、Playbook 回测记录、发布记录和截图说明 | 拿到 Playbook Key 后补 Playbook 官方回测 |
 | 策略失败 | 新闻利好就买，逻辑太空 | 写入新闻、宏观、技术、风控、打分和五档输出 | 继续细化信号权重和阈值口径 |
 | 工具失败 | Playbook Key 或 Skill 权限不可用 | 写入降级方式，不能伪造结果 | 实测官方工具权限和额度 |
 | 回测失败 | 指标不好看或无法解释 | 要求记录策略版本、周期、指标和变更摘要 | 准备 2-3 个策略 prompt 版本对比 |
-| 展示失败 | GitHub 打开不知道看什么 | 拆出 architecture、strategy、playbook、devlog 等目录 | 补齐各目录 README 和模板 |
+| 展示失败 | GitHub 打开不知道看什么 | 拆出 architecture、strategy、playbook、devlog、reports 等目录 | 补齐各目录 README 和模板 |
 | 安全失败 | Key 或账户数据入库 | `.gitignore` + security 文档 + 敏感信息扫描 | 后续每次提交前继续扫描 |
-| 范围失败 | 从 Playbook 最简单版膨胀成复杂系统 | 明确第一版不写业务代码、不建 Web/API、不启定时任务 | 后续需求变更必须单独确认 |
+| 范围失败 | 从 Playbook 最简单版膨胀成复杂系统 | 明确第一版只做 backtest-only CLI，不写实盘执行代码、不建 Web/API、不启定时任务 | 后续需求变更必须单独确认 |
 
 ## 16. 待确认问题
 
@@ -535,11 +562,12 @@ src/
 
 非阻塞问题可在实施计划阶段继续确认：
 
-1. 最终 Playbook 支持的美股代币化资产清单。
-2. 是否需要录制 3 分钟以内演示视频。
-3. GitHub 仓库是否公开，仓库名称用英文还是中文。
-4. 信号打分的权重、阈值和五档输出映射，需要继续和用户逐步确认。
-5. Playbook 回测后的实际指标是否足够作为提交材料，需要实际运行后确认。
+1. 最终 Playbook 支持的 Bitget 股票类 USDT 永续合约清单。
+2. 最终确认第一版候选池是否只选 20-30 个 AI/科技相关股票类 USDT 永续合约。
+3. 是否需要录制 3 分钟以内演示视频。
+4. GitHub 仓库是否公开，仓库名称用英文还是中文。
+5. 信号打分的权重、阈值和五档输出映射，需要继续和用户逐步确认。
+6. Playbook 回测后的实际指标是否足够作为提交材料，需要实际运行后确认。
 
 ## 17. 实施计划入口
 

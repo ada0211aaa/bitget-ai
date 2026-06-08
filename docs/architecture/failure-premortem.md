@@ -10,4 +10,4 @@ This project can fail in predictable ways:
 | Demo looks like a concept only | Record Playbook outputs, screenshots, and submission-ready summaries. |
 | Repo looks confusing | Keep folder README files and point the main README to the core docs. |
 | Secrets leak | Use `.gitignore`, placeholder-only docs, and pre-commit sensitive string scans. |
-| Scope grows too large | Keep first version documentation-only and Playbook-first. |
+| Scope grows too large | Keep first version backtest-only, Playbook-first, and without Web/API, scheduler, notifications, or live trading. |
