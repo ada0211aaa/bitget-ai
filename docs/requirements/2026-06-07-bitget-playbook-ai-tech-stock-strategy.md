@@ -18,7 +18,7 @@
 - 文档状态：草案，待用户确认
 - 需求来源：用户口述 + Bitget AI Base Camp Hackathon S1 官方规则
 - 创建日期：2026-06-07
-- 最近更新：2026-06-07
+- 最近更新：2026-06-08
 
 ## 2. 背景
 
@@ -205,6 +205,140 @@ flowchart TD
 | 定时任务 | 第一版手动触发 | 不启动后台任务 | 每日自动任务需明确批准 |
 | 未来改造点 | 记录脚本化和产品化方向 | 仅规划 | 每一步都需独立需求确认 |
 
+### 7.2 分层架构树
+
+第一版以文档和 Bitget Playbook 为主，不开发前端、后端 API 或真实交易执行器。下面这棵树用于说明后续如果脚本化，职责应该如何分层。
+
+```text
+┌─── 表示层 (Presentation Layer)
+│    ├── GitHub README 展示
+│    ├── 需求文档与架构文档
+│    ├── 开发日记与 Showcase 材料
+│    └── 未来可选 Web Dashboard
+│
+├─── 策略编排层 (Strategy Orchestration Layer)
+│    ├── 策略管理器 (StrategyManager)
+│    │    └── 维护 AI 科技股策略口径、候选池和版本
+│    ├── 信号编排器 (SignalOrchestrator)
+│    │    └── 汇总新闻、宏观、技术、情绪和市场情报
+│    ├── 风险控制器 (RiskController)
+│    │    └── 先做硬过滤，优先防亏和少犯大错
+│    ├── 决策输出器 (DecisionOutput)
+│    │    └── 输出看多 / 谨慎看多 / 中性观望 / 谨慎看空 / 看空
+│    └── Playbook Prompt 管理器 (PlaybookPromptManager)
+│         └── 生成给 Bitget Playbook 使用的自然语言策略说明
+│
+├─── Bitget 工具服务层 (Bitget Service Layer)
+│    ├── PlaybookService
+│    │    └── 策略创建、上传、回测、发布和指标输出
+│    ├── NewsBriefingService
+│    │    └── 使用 news-briefing 收集财报/指引、AI 芯片和算力需求新闻
+│    ├── MacroAnalystService
+│    │    └── 使用 macro-analyst 判断 Fed、利率、DXY、VIX、Nasdaq 环境
+│    ├── TechnicalAnalysisService
+│    │    └── 使用 technical-analysis 判断趋势、均线、RSI、MACD 等
+│    ├── SentimentAnalystService
+│    │    └── 使用 sentiment-analyst 做情绪和拥挤度辅助判断
+│    └── MarketIntelService
+│         └── 使用 market-intel 做机构、ETF 和主题叙事辅助判断
+│
+├─── 数据与记录层 (Data & Record Layer)
+│    ├── BacktestRecord
+│    │    └── 记录策略版本、标的、周期、PnL、最大回撤、夏普比率和截图
+│    ├── SignalSnapshot
+│    │    └── 未来可选记录每日信号快照
+│    ├── DevlogRecord
+│    │    └── 记录 X/Twitter 开发日记草稿和链接
+│    └── ConfigRecord
+│         └── 只记录占位说明，不记录真实 API Key 或账户敏感信息
+│
+└─── 基础设施层 (Infrastructure Layer)
+     ├── 安全边界 (SecretsPolicy)
+     │    └── 禁止密钥、私钥、真实账户敏感信息入库
+     ├── 日志与复盘 (SessionRecap)
+     │    └── 记录脱敏 AI 会话复盘
+     ├── 监控与验证 (VerificationChecklist)
+     │    └── 提交前检查占位符、敏感信息和回测证据
+     ├── 定时任务边界 (SchedulerBoundary)
+     │    └── 第一版不启动定时任务；未来必须单独确认
+     └── 未来依赖管理 (FutureDependencyPlan)
+          └── 如需 Python CLI、SQLite、Web/API，再单独写实施计划
+```
+
+### 7.3 第一版文件夹排列
+
+第一版只创建和维护文档目录，不创建业务代码目录。下面是建议的 GitHub 仓库结构：
+
+```text
+bitget-ai/
+├── AGENTS.md
+├── README.md
+├── .gitignore
+│
+└── docs/
+    ├── requirements/
+    │   └── 2026-06-07-bitget-playbook-ai-tech-stock-strategy.md
+    │
+    ├── architecture/
+    │   ├── system-architecture.md
+    │   ├── folder-structure.md
+    │   ├── data-flow.md
+    │   └── failure-premortem.md
+    │
+    ├── bitget-skills/
+    │   ├── README.md
+    │   ├── news-briefing.md
+    │   ├── macro-analyst.md
+    │   ├── technical-analysis.md
+    │   ├── sentiment-analyst.md
+    │   └── market-intel.md
+    │
+    ├── strategy/
+    │   ├── README.md
+    │   ├── trading-strategy.md
+    │   ├── signal-scoring.md
+    │   ├── news-indicators.md
+    │   ├── macro-filters.md
+    │   ├── technical-confirmation.md
+    │   ├── risk-rules.md
+    │   └── decision-output.md
+    │
+    ├── playbook/
+    │   ├── README.md
+    │   ├── playbook-prompt.md
+    │   ├── backtest-record-template.md
+    │   ├── backtest-results.md
+    │   └── publish-record.md
+    │
+    ├── devlog/
+    │   ├── README.md
+    │   ├── x-post-drafts.md
+    │   ├── showcase-checklist.md
+    │   └── submission-summary-200chars.md
+    │
+    ├── security/
+    │   ├── secrets-policy.md
+    │   └── api-key-handling.md
+    │
+    └── ai-sessions/
+        ├── 2026-06-06-会话复盘.md
+        └── 2026-06-07-会话复盘.md
+```
+
+未来如果从文档型升级为脚本型，再按下面结构新增 `src/`，但该目录不属于第一版必须实现范围：
+
+```text
+src/
+├── entry/
+├── config/
+├── data_sources/
+├── core/
+├── storage/
+├── web_api/
+├── notifications/
+└── scheduler/
+```
+
 ## 8. Bitget 工具使用要求
 
 ### 8.1 Bitget Playbook
@@ -333,6 +467,7 @@ flowchart TD
 | AC-8 | 文档无模板残留 | 命令检查 | 扫描需求文档、项目规则和 README，不出现未替换的模板字段或待填内容 |
 | AC-9 | 敏感信息未写入 | 命令检查 | 扫描仓库，不发现真实密钥赋值、私钥文件或账户敏感数据 |
 | AC-10 | 架构图覆盖指定层级 | 人工检查 | Mermaid 图包含入口、配置、数据源、数据库、核心流程、Web/API、通知、定时任务、未来改造点 |
+| AC-11 | 分层树和文件夹排列清楚 | 人工检查 | 文档包含表示层、策略编排层、Bitget 工具服务层、数据与记录层、基础设施层，以及第一版文档目录结构 |
 
 ## 14. 风险与回退
 
