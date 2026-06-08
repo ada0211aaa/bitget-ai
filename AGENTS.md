@@ -39,3 +39,11 @@ Before starting work, follow the global rule chain:
 - Requirements docs go under `docs/requirements/`.
 - AI session recaps go under `docs/ai-sessions/`.
 - Public-facing summary content can go in `README.md`.
+- Architecture docs go under `docs/architecture/`.
+- Bitget skill usage docs go under `docs/bitget-skills/`.
+- Strategy docs go under `docs/strategy/`.
+- Playbook prompts and backtest records go under `docs/playbook/`.
+- Development diary drafts go under `docs/devlog/`.
+- Security docs go under `docs/security/`.
+- Project-level changes go in `CHANGELOG.md`.
+- Durable project memory goes in `MEMORY.md`.

@@ -13,7 +13,15 @@ The first version is requirements-first and simulation/backtest-only. It does no
 
 - [Project rules](./AGENTS.md)
 - [Requirements draft](./docs/requirements/2026-06-07-bitget-playbook-ai-tech-stock-strategy.md)
+- [Architecture docs](./docs/architecture/)
+- [Bitget skills docs](./docs/bitget-skills/)
+- [Strategy docs](./docs/strategy/)
+- [Playbook docs](./docs/playbook/)
+- [Devlog drafts](./docs/devlog/)
+- [Security docs](./docs/security/)
 - [AI session recaps](./docs/ai-sessions/)
+- [Changelog](./CHANGELOG.md)
+- [Project memory](./MEMORY.md)
 
 ## Safety Notes
 
