@@ -3,7 +3,7 @@
 Never commit:
 
 - Playbook API keys.
-- Bitget API keys.
+- Account API keys.
 - API secrets.
 - Passphrases.
 - Private keys.

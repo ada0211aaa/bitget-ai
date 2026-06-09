@@ -10,8 +10,8 @@
 
 ## 2026-06-09
 
-- Added `.env.example` with placeholder-only Bitget and Playbook credentials.
-- Documented that current backtest code does not require trading credentials.
+- Added `.env.example` with the single Playbook API key placeholder needed by the current project.
+- Documented that current backtest code does not require account, position, or trading credentials.
 
 ## 2026-06-07
 

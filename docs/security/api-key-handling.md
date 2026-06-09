@@ -1,7 +1,9 @@
 # API Key Handling
 
-Playbook API keys are required only when actually running Bitget Playbook.
-Bitget trading API credentials are required only for authenticated account or trading API calls.
+The current project only needs one Playbook API key when actually running the official Playbook flow.
+The local backtest CLI does not need any key.
+
+This project does not require Bitget account balance, position, order-history, or live-trading credentials.
 
 Rules:
 
@@ -17,4 +19,5 @@ Rules:
 - Use `.env.example` as the template.
 - Copy to `.env` only on your machine.
 - Fill real values only in `.env`, never in Git-tracked files.
-- Current backtest code does not need trading credentials.
+- Current backtest code does not need credentials.
+- Do not add account, balance, position, or live-order credentials unless a separate live-trading requirement is approved.
