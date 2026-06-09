@@ -8,6 +8,11 @@
 - Added root-rules-inspired requirements coverage: run modes, dry-run boundary, failure premortem, and documentation folder responsibilities.
 - Kept the first version Playbook-first, backtest/simulation-only, and without live trading.
 
+## 2026-06-09
+
+- Added `.env.example` with placeholder-only Bitget and Playbook credentials.
+- Documented that current backtest code does not require trading credentials.
+
 ## 2026-06-07
 
 - Initialized the Bitget AI Hackathon repository.

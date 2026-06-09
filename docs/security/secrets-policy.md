@@ -11,3 +11,4 @@ Never commit:
 - Real live-trading configuration.
 
 Use placeholders such as `<PLAYBOOK_API_KEY>`.
+Use `.env.example` for placeholder structure only; never put real secrets there.
