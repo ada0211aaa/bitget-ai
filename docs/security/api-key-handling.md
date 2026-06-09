@@ -21,3 +21,12 @@ Rules:
 - Fill real values only in `.env`, never in Git-tracked files.
 - Current backtest code does not need credentials.
 - Do not add account, balance, position, or live-order credentials unless a separate live-trading requirement is approved.
+
+## Playbook API Boundary
+
+- The Playbook API client reads only `PLAYBOOK_API_KEY` from local `.env`.
+- The key is sent as the `ACCESS-KEY` header required by the official Playbook control-plane API.
+- The implemented API calls are limited to list, upload, run, and run-status polling.
+- The project does not call publish, enable, disable, account, position, balance, or order-placement endpoints.
+- Raw API responses under `reports/playbook/*.json` are local generated artifacts and are ignored by Git.
+- The public-friendly record is `reports/playbook/playbook-report.md`, which keeps only core IDs and metrics.

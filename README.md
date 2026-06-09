@@ -11,6 +11,26 @@ The first asset scope is Bitget-listed stock USDT perpetual contracts, such as `
 
 The first version is requirements-first and simulation/backtest-only. It does not contain API keys, live trading credentials, or a live execution engine.
 
+## Playbook API Backtest
+
+This repo can now call the official Bitget Playbook control-plane API with the single local `PLAYBOOK_API_KEY` in `.env`.
+
+Run the real Playbook API flow:
+
+```bash
+PYTHONPATH=src python3 -m bitget_ai_backtest.cli playbook-backtest --env .env --package-dir playbooks/ai-tech-stock-news-signal --output-dir reports/playbook --poll --poll-interval 5 --max-polls 20
+```
+
+What it does:
+
+- Packages `playbooks/ai-tech-stock-news-signal/`.
+- Uploads the package to `https://api.bitget.com/api/v1/playbook/upload`.
+- Starts a Playbook backtest with `POST /api/v1/playbook/run`.
+- Polls `GET /api/v1/playbook/run?run_id=...` until completion or timeout.
+- Writes a safe summary to `reports/playbook/playbook-report.md`.
+
+It does not publish, enable subscriptions, read positions, or place live orders.
+
 ## Local Backtest Demo
 
 This implementation is backtest-only. It uses Bitget public market data or deterministic fixtures. It does not use API keys and cannot place orders.

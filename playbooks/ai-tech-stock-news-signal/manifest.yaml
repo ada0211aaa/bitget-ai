@@ -1,0 +1,51 @@
+name: ai-tech-stock-news-signal
+display_name: "AI Tech Stock News Signal"
+version: "1.0.0"
+description: "Signal-only NVDAUSDT trend confirmation Playbook for the US Stock AI Trading track"
+long_description: |
+  This Playbook is a signal-only strategy for stock-linked USDT perpetual contracts, focused on liquid technology names that often react strongly to earnings, macro expectations, and market-wide risk appetite. Its thesis is that the first public reaction to important news is often noisy, but a cleaner opportunity can appear when price action confirms that investors are still willing to carry the move. The Playbook tries to capture that confirmed continuation behavior rather than chase every headline or predict every reversal.
+
+  Entry logic is deliberately conservative. The strategy looks for a shorter trend read to recover above a slower trend read before it enters a long view. That alignment suggests that recent buying pressure has become strong enough to support a directional signal. The first version does not open short positions, because the hackathon demo is meant to show a simple long-or-watch decision loop and avoid overfitting both sides of a young stock-linked contract market.
+
+  Exit logic is the mirror image of entry. When the shorter trend read fades back below the slower read, the Playbook closes or retracts the long view because conviction has weakened. It does not promise a separate stop loss or take profit engine in this package. For the replayable version, the signal itself is the exit gate, and the goal is to produce honest historical evidence rather than a polished live execution claim.
+
+  The main tunable parameters are the trading symbol and the margin budget. Changing the symbol moves the same decision style to another supported stock-linked contract and can materially change liquidity, volatility, and headline sensitivity. Adjusting the margin budget changes the denominator the platform uses for strategy-level performance presentation; it should be treated as a risk allocation setting, not as a way to make the signal smarter.
+
+  The strategy carries meaningful risk. It can underperform during sideways chop, around sudden earnings or Federal Reserve headlines, and when liquidity is thin enough that a contract does not track the underlying stock cleanly. Drawdowns can cluster when news flow keeps reversing market expectations. Historical backtest evidence only proves that the package can be replayed; it does not guarantee live profitability or remove unsuitable regime risk.
+market_type: contract
+trading_symbols: ["NVDAUSDT"]
+tags: ["stock-ai", "nvda", "trend", "news-aware", "signal-only"]
+
+decision_mode: deterministic
+backtest_support: full
+runtime_profile: deterministic
+execution_mode: signal_only
+follow_trade_supported: false
+
+strategy_config:
+  trading_symbols: ["NVDAUSDT"]
+  fast_period: 12
+  slow_period: 26
+  margin_budget: "100"
+
+user_config_schema:
+  trading_symbols:
+    type: array
+    item_type: string
+    default: ["NVDAUSDT"]
+    options: ["NVDAUSDT", "AAPLUSDT", "MSFTUSDT"]
+    aliases:
+      nvda: NVDAUSDT
+      nvidia: NVDAUSDT
+      aapl: AAPLUSDT
+      apple: AAPLUSDT
+      msft: MSFTUSDT
+      microsoft: MSFTUSDT
+    min_items: 1
+    max_items: 1
+    label: "Trading symbol"
+  margin_budget:
+    type: string
+    default: "100"
+    pattern: "^[0-9]+(\\.[0-9]+)?$"
+    label: "Margin budget USDT"

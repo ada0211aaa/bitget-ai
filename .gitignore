@@ -27,3 +27,6 @@ build/
 tmp/
 *.log
 
+# Playbook API raw outputs
+reports/playbook/*.json
+reports/playbook/*.tar.gz

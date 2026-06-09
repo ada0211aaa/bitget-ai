@@ -12,6 +12,9 @@
 
 - Added `.env.example` with the single Playbook API key placeholder needed by the current project.
 - Documented that current backtest code does not require account, position, or trading credentials.
+- Added a real Bitget Playbook API client and CLI flow for list, upload, backtest run, and run polling.
+- Added a signal-only NVDAUSDT Playbook package under `playbooks/ai-tech-stock-news-signal/`.
+- Recorded a completed Playbook API backtest summary under `reports/playbook/playbook-report.md`.
 
 ## 2026-06-07
 
