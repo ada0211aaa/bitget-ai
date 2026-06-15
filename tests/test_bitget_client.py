@@ -34,3 +34,12 @@ def test_build_candles_url_uses_v3_market_endpoint() -> None:
     assert "symbol=NVDAUSDT" in url
     assert "interval=15m" in url
     assert "limit=100" in url
+
+
+def test_build_candles_url_normalizes_daily_interval_for_bitget() -> None:
+    client = BitgetPublicClient()
+
+    url = client.build_candles_url("AMDUSDT", "1d", 1000)
+
+    assert "symbol=AMDUSDT" in url
+    assert "interval=1D" in url

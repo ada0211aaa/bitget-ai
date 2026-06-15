@@ -32,6 +32,32 @@ class Trade:
     quantity: float
     fee: float
     reason: str
+    reasons: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class DecisionRecord:
+    timestamp_ms: int
+    symbol: str
+    action: str
+    price: float
+    news_strength: str
+    news_direction: str
+    technical_confirmation: str
+    cooldown_state: str
+    decision_reason: str
+    final_view: str
+    technical_reasons: tuple[str, ...] = ()
+    event_id: str = ""
+    news_title: str = ""
+    news_source: str = ""
+    news_source_type: str = ""
+    news_published_at: str = ""
+    news_url: str = ""
+    news_sentiment: str = ""
+    news_source_action: str = "无新闻来源"
+    quantity: float = 0.0
+    fee: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -44,3 +70,4 @@ class BacktestResult:
     equity_curve: tuple[float, ...]
     trades: tuple[Trade, ...]
     last_signal: StrategySignal
+    decision_records: tuple[DecisionRecord, ...] = ()

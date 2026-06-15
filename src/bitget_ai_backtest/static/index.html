@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bitget 多票回测行情台</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">Bitget AI Hackathon S1 · 美股 AI 交易赛道</span>
+        <h1>Bitget 多票回测行情台</h1>
+        <p>一行一个股票查看回测结果，点进详情看价格轨迹、新闻信号和买卖原因。</p>
+      </div>
+      <span class="badge">只读回测 · 不下单</span>
+    </header>
+
+    <main>
+      <section class="band status-grid">
+        <div>
+          <h2>项目状态</h2>
+          <p id="safe-notice">加载中...</p>
+        </div>
+        <div class="metric-row">
+          <div><strong id="symbol-count">0</strong><span>标的数量</span></div>
+          <div><strong id="trade-count">0</strong><span>交易次数</span></div>
+          <div><strong id="explanation-count">0</strong><span>决策行数</span></div>
+        </div>
+      </section>
+
+      <section class="band">
+        <h2>当前股票池</h2>
+        <div id="config"></div>
+      </section>
+
+      <section id="market-view" class="view-stack">
+        <section class="band">
+          <div class="section-heading">
+            <h2>回测行情列表</h2>
+            <span class="source-pill">点击标的查看运行详情</span>
+          </div>
+          <div class="table-wrap">
+            <table id="market-table" class="market-table">
+              <thead>
+                <tr>
+                  <th>标的</th>
+                  <th>最新价</th>
+                  <th>回测收益</th>
+                  <th>最大回撤</th>
+                  <th>最新观点</th>
+                  <th>交易次数</th>
+                  <th>最新动作</th>
+                  <th>新闻强度</th>
+                  <th>技术确认</th>
+                  <th>详情</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="detail-view" class="view-stack" hidden>
+        <section class="band">
+          <button id="back-to-market" class="back-button" type="button">返回行情列表</button>
+          <div class="section-heading detail-heading">
+            <h2 id="detail-title">单票运行详情</h2>
+            <span id="focus-symbol" class="source-pill">选择标的</span>
+          </div>
+          <div id="coverage-grid" class="coverage-grid"></div>
+        </section>
+
+        <section class="band">
+          <h2>回测总览</h2>
+          <div class="table-wrap">
+            <table id="summary-table">
+              <thead>
+                <tr>
+                  <th>标的</th>
+                  <th>最终权益</th>
+                  <th>收益率</th>
+                  <th>最大回撤</th>
+                  <th>最新观点</th>
+                  <th>交易次数</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="band">
+          <h2 id="price-chart-title">价格走势</h2>
+          <div id="kline-chart" class="kline-chart"></div>
+          <div id="kline-hover" class="kline-hover"></div>
+          <div id="explanations" class="stack"></div>
+        </section>
+
+        <section class="band">
+          <div class="section-heading">
+            <h2>交易决策明细表</h2>
+          </div>
+          <div class="table-wrap decision-table-wrap">
+            <table id="decision-table" class="decision-table">
+              <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>交易时间</th>
+                  <th>标的</th>
+                  <th>动作</th>
+                  <th>新闻强度</th>
+                  <th>新闻方向</th>
+                  <th>技术确认</th>
+                  <th>冷却状态</th>
+                  <th>价格</th>
+                  <th>数量</th>
+                  <th>匹配新闻 / 事件标题</th>
+                  <th>新闻来源</th>
+                  <th>新闻发布时间</th>
+                  <th>查看原文</th>
+                  <th>技术原因</th>
+                  <th>综合观点</th>
+                  <th>为什么买 / 为什么卖</th>
+                  <th>回测后续结果</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="band">
+          <h2>新闻与事件信号</h2>
+          <div id="events" class="stack"></div>
+        </section>
+      </section>
+
+      <section class="band">
+        <h2>Playbook 官方回测证据</h2>
+        <pre id="playbook"></pre>
+      </section>
+
+      <section class="band">
+        <h2>参赛提交清单</h2>
+        <ul id="checklist"></ul>
+      </section>
+    </main>
+
+    <script src="./vendor/lightweight-charts.standalone.production.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

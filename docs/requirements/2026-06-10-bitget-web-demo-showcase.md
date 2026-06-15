@@ -148,11 +148,13 @@
    - 对每次买入/卖出显示“为什么触发”；
    - 第一版至少展示现有 `reason/view`，例如 `cautiously_bullish`、`bearish`；
    - 如果实现成本可控，进一步展示 `trend_up`、`trend_down`、`news_neutral`、`macro_neutral` 等更细原因。
-8. 新闻/事件展示占位。
+8. 新闻/事件展示。
    - 页面必须有“新闻与事件信号”区块；
-   - 第一版如果没有真实新闻 API 数据，可以明确显示：当前本地回测使用 `news_bias` 配置模拟新闻倾向；
-   - 不允许把模拟新闻写成真实新闻；
-   - 后续接 Bitget Agent Hub `news-briefing` 时再补真实新闻源。
+   - 第一版优先读取 Bitget Agent Hub 技能导出的新闻/宏观/情绪/技术事件，尤其是 `news-briefing`；
+   - 支持的 Bitget 技能来源包括 `news-briefing`、`macro-analyst`、`sentiment-analyst`、`technical-analysis`、`market-intel`；
+   - 如果 Bitget 技能暂不可用或没有历史事件数据，再降级公开免费新闻源；
+   - 每条事件必须显示来源类型、发布时间、标题、URL、情绪判断和判断原因；
+   - `news_bias` 只作为无事件文件时的降级配置，不允许把模拟新闻写成真实新闻。
 9. Playbook 官方回测结果展示。
    - 读取 `reports/playbook/playbook-report.md`；
    - 展示状态、收益、回撤、胜率、交易次数；
@@ -192,8 +194,10 @@
 | 输入项 | 来源 | 格式 | 是否必填 | 说明 |
 | --- | --- | --- | --- | --- |
 | 股票池配置 | `configs/default_universe.json` | JSON | 是 | 当前回测跑哪些 Bitget 股票类 USDT 永续合约 |
+| 新闻/事件记录 | `data/events/us_stock_events.json` | JSON | 否 | 由 Bitget 技能导出或公开新闻源生成的真实事件表 |
 | 本地回测报告 | `reports/latest/backtest-report.md` | Markdown | 是 | 展示总览指标 |
 | 本地交易记录 | `reports/latest/trades.csv` | CSV | 是 | 展示买入卖出点和交易明细 |
+| 交易解释记录 | `reports/latest/trade-explanations.json` | JSON | 否 | 展示每笔交易匹配到的新闻/事件和解释链 |
 | Playbook 回测报告 | `reports/playbook/playbook-report.md` | Markdown | 否 | 展示 Bitget 官方回测证据 |
 | 策略说明文档 | `docs/strategy/*.md` | Markdown | 否 | 页面可引用策略解释 |
 | 参赛材料文档 | `docs/devlog/*.md` | Markdown | 否 | 页面可引用提交 checklist 和项目简介 |
@@ -204,6 +208,8 @@
 | --- | --- | --- | --- |
 | 本地 Web 页面 | 浏览器 | HTML/CSS/JS | 打开本地端口能看到股票池、策略、回测结果和交易明细 |
 | 本地 API | 浏览器页面 | JSON | 页面能拿到 summary、symbols、trades、strategy、playbook、submission checklist |
+| 新闻/事件文件 | `data/events/us_stock_events.json` | JSON | 每条事件有来源、发布时间、标的、标题、情绪和判断原因 |
+| 交易解释文件 | `reports/latest/trade-explanations.json` | JSON | 每笔交易能追溯 24 小时内的匹配事件或明确显示无匹配事件 |
 | README 运行说明 | `README.md` | Markdown | 用户能复制命令启动 Web Demo |
 | 需求追踪记录 | 本文档或实施计划 | Markdown | 每条需求能对应实现位置和验证方式 |
 
@@ -313,11 +319,15 @@ FastAPI + React/Vite + 多页面导航 + 完整构建流程
 ```mermaid
 flowchart TD
     A["configs/default_universe.json"] --> B["现有 backtest CLI"]
+    K["Bitget Agent Hub 技能导出 / 公开新闻降级源"] --> L["data/events/us_stock_events.json"]
+    L --> B
     B --> C["reports/latest/backtest-report.md"]
     B --> D["reports/latest/trades.csv"]
+    B --> M["reports/latest/trade-explanations.json"]
     E["reports/playbook/playbook-report.md"] --> H["Web API 只读读取"]
     C --> H
     D --> H
+    M --> H
     A --> H
     F["docs/strategy/*.md"] --> H
     G["docs/devlog/*.md"] --> H
@@ -336,6 +346,7 @@ flowchart TD
 | `src/bitget_ai_backtest/` | 后续实现 Web API / 数据读取 / 页面服务 |
 | `tests/` | 后续实现对应测试 |
 | `static/` 或 `web/` | 后续实现静态页面资源，具体路径由实施计划确定 |
+| `data/events/` | 后续保存脱敏新闻/事件记录，不保存密钥或账户信息 |
 | `docs/devlog/` | 后续补参赛说明和录屏脚本 |
 
 ### 12.2 禁止修改或禁止提交
@@ -364,6 +375,7 @@ flowchart TD
 | 没有跑过本地回测 | 页面提示先运行 backtest 命令 | 不崩溃，返回明确错误 |
 | `trades.csv` 缺失 | 交易明细区提示暂无交易记录 | 不伪造交易 |
 | Playbook 报告缺失 | Playbook 区块显示未运行 | 不阻塞本地页面 |
+| 新闻/事件文件缺失 | 新闻区提示未生成事件文件，交易解释显示无匹配事件 | 不伪造新闻，不把 `news_bias` 当真实新闻 |
 | 配置文件格式错误 | 页面提示配置读取失败 | 返回可读错误 |
 | 图表数据不足 | 显示空状态 | 不报前端白屏 |
 
@@ -381,6 +393,8 @@ flowchart TD
 | AC-8 | 参赛材料清楚 | 页面人工检查 | 页面列出 GitHub、200 字说明、3 分钟视频、传播帖子、开发日记要求 |
 | AC-9 | 测试通过 | 运行测试命令 | 现有测试通过，新增 Web 数据读取测试通过 |
 | AC-10 | 无敏感信息泄漏 | 搜索检查 | 仓库不包含真实 API Key、secret、passphrase |
+| AC-11 | 新闻/事件可落盘 | 运行 `fetch-events` | 生成 `data/events/us_stock_events.json`，每条事件有 `source_type` |
+| AC-12 | 交易解释链可落盘 | 运行带 `--events` 的 backtest | 生成 `reports/latest/trade-explanations.json`，只匹配交易前 24 小时内事件 |
 
 ## 16. 参赛最短路径
 
@@ -403,7 +417,8 @@ flowchart TD
 | 展示回测总览 | 后续 Web API + 页面 | 对比 `backtest-report.md` | 待实现 |
 | 展示买卖明细 | 后续 Web API + 页面 | 对比 `trades.csv` | 待实现 |
 | 展示策略解释 | 后续页面文案 + 策略元数据 | 人工检查 | 待实现 |
-| 展示新闻/事件信号 | 第一版显示配置化新闻倾向，后续接真实 news-briefing | 人工检查 | 第一版仅占位 |
+| 展示新闻/事件信号 | Bitget 技能导出优先，公开新闻源降级，输出 `data/events/us_stock_events.json` | 检查事件来源、发布时间和情绪原因 | 待实现 |
+| 展示交易解释链 | `reports/latest/trade-explanations.json` + 页面 | 检查交易前 24 小时事件匹配 | 待实现 |
 | 展示 Playbook 回测 | 后续 Web API + 页面 | 对比 `playbook-report.md` | 待实现 |
 | 展示参赛 checklist | 后续页面 | 对比比赛要求和 docs/devlog | 待实现 |
 | 不接实盘不泄密 | Web API / 页面 / README | 代码检查 + 敏感信息扫描 | 待实现 |

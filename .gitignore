@@ -26,6 +26,10 @@ dist/
 build/
 tmp/
 *.log
+src/bitget_ai_backtest/static/dashboard-data.json
+
+# Local Bitget Agent Hub exports
+data/bitget-skills/*.json
 
 # Playbook API raw outputs
 reports/playbook/*.json

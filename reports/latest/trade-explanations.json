@@ -1,0 +1,36 @@
+{
+  "trade_explanations": [
+    {
+      "symbol": "AMDUSDT",
+      "timestamp_ms": 1781281800000,
+      "side": "buy",
+      "price": 511.06,
+      "quantity": 4.8888584510624975,
+      "fee": 1.4999999999999998,
+      "final_view": "cautiously_bullish",
+      "technical_reasons": [
+        "trend_up",
+        "news_neutral",
+        "macro_neutral"
+      ],
+      "matched_events": [
+        "AMDUSDT-2026-06-12-cf4e897c8b"
+      ],
+      "matched_event_details": [
+        {
+          "event_id": "AMDUSDT-2026-06-12-cf4e897c8b",
+          "published_at": "2026-06-12T16:15:21Z",
+          "title": "Wall Street Just Put a Monster Target on AMD. Is the Stock Still Too Cheap?",
+          "source_name": "Yahoo Finance RSS",
+          "source_type": "public_news_fallback",
+          "url": "https://247wallst.com/investing/2026/06/12/wall-street-just-put-a-monster-target-on-amd-is-the-stock-still-too-cheap/?.tsrc=rss",
+          "sentiment": "bullish",
+          "confidence": 0.7,
+          "reason": "Matched bullish keyword: upgrade"
+        }
+      ],
+      "news_score": 1,
+      "explanation": "buy was triggered with view cautiously_bullish. Within the prior 24 hours, matched news score was 1: Wall Street Just Put a Monster Target on AMD. Is the Stock Still Too Cheap? (bullish)."
+    }
+  ]
+}

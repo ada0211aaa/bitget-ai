@@ -47,12 +47,34 @@ Run public-data backtest:
 PYTHONPATH=src python3 -m bitget_ai_backtest.cli backtest --config configs/default_universe.json --output-dir reports/latest
 ```
 
+Fetch news/events for the configured symbols. The first version reads local Bitget Agent Hub skill exports from `data/bitget-skills/` when present, then falls back to public Yahoo Finance RSS. Every event records its source type.
+
+```bash
+PYTHONPATH=src python3 -m bitget_ai_backtest.cli fetch-events --config configs/default_universe.json --output data/events/us_stock_events.json
+```
+
+Run a backtest with the event file and write per-trade explanations:
+
+```bash
+PYTHONPATH=src python3 -m bitget_ai_backtest.cli backtest --config configs/default_universe.json --events data/events/us_stock_events.json --output-dir reports/latest
+```
+
+Start the local Web demo in the foreground:
+
+```bash
+PYTHONPATH=src python3 -m bitget_ai_backtest.cli web --config configs/default_universe.json --output-dir reports/latest --port 8000
+```
+
+Open `http://127.0.0.1:8000` in a browser. Stop the server with `Ctrl+C`.
+
 Outputs:
 
 - `reports/local-demo/backtest-report.md`
 - `reports/local-demo/trades.csv`
 - `reports/latest/backtest-report.md`
 - `reports/latest/trades.csv`
+- `reports/latest/trade-explanations.json`
+- `data/events/us_stock_events.json`
 
 ## Current Documents
 

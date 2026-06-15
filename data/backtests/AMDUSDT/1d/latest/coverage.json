@@ -1,0 +1,15 @@
+{
+  "symbols": {
+    "AMDUSDT": {
+      "symbol": "AMDUSDT",
+      "interval": "1d",
+      "source": "bitget_public",
+      "rows": 62,
+      "start_date": "2026-04-14",
+      "end_date": "2026-06-14",
+      "kline_coverage": "2026-04-14 -> 2026-06-14",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2026-04-14 -> 2026-06-14"
+    }
+  }
+}

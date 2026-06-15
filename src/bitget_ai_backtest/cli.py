@@ -3,15 +3,27 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .backtester import backtest_symbol
 from .bitget_client import BitgetPublicClient, parse_candles_response
 from .config import load_config
 from .env import load_playbook_api_key
+from .events import collect_events, events_for_symbol, load_events, write_events
+from .explanations import explain_trades, write_trade_explanations
 from .playbook_client import PlaybookClient
 from .playbook_package import create_package_archive
-from .reporting import write_report
+from .reporting import (
+    candles_to_rows,
+    write_candles_snapshot,
+    write_chart_markers,
+    write_coverage,
+    write_decision_records,
+    write_normalized_artifacts,
+    write_report,
+)
+from .web import serve_dashboard
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -27,9 +39,21 @@ def main(argv: list[str] | None = None) -> int:
     fetch_parser.add_argument("--limit", type=int, default=200)
     fetch_parser.add_argument("--output", type=Path, required=True)
 
+    events_parser = subparsers.add_parser("fetch-events", help="Fetch news/events for configured symbols")
+    events_parser.add_argument("--config", type=Path, default=Path("configs/default_universe.json"))
+    events_parser.add_argument("--output", type=Path, default=Path("data/events/us_stock_events.json"))
+    events_parser.add_argument("--skill-export-dir", type=Path, default=Path("data/bitget-skills"))
+
     backtest_parser = subparsers.add_parser("backtest", help="Backtest from live public candles")
     backtest_parser.add_argument("--config", type=Path, default=Path("configs/default_universe.json"))
     backtest_parser.add_argument("--output-dir", type=Path, default=Path("reports/latest"))
+    backtest_parser.add_argument("--events", type=Path, default=None)
+
+    web_parser = subparsers.add_parser("web", help="Serve local backtest-only web dashboard")
+    web_parser.add_argument("--config", type=Path, default=Path("configs/default_universe.json"))
+    web_parser.add_argument("--output-dir", type=Path, default=Path("reports/latest"))
+    web_parser.add_argument("--events", type=Path, default=Path("data/events/us_stock_events.json"))
+    web_parser.add_argument("--port", type=int, default=8000)
 
     playbook_list_parser = subparsers.add_parser("playbook-list", help="Call Playbook API to list playbooks")
     playbook_list_parser.add_argument("--env", type=Path, default=Path(".env"))
@@ -72,16 +96,26 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "fetch":
         candles = BitgetPublicClient().fetch_candles(args.symbol, args.granularity, args.limit)
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps([candle.__dict__ for candle in candles], indent=2), encoding="utf-8")
+        args.output.write_text(json.dumps(candles_to_rows(candles), indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"Fetched {len(candles)} candles for {args.symbol.upper()} into {args.output}")
+        return 0
+
+    if args.command == "fetch-events":
+        config = load_config(args.config)
+        events = collect_events(config, skill_export_dir=args.skill_export_dir)
+        write_events(args.output, events)
+        print(f"Events written: {args.output}")
         return 0
 
     if args.command == "backtest":
         config = load_config(args.config)
         client = BitgetPublicClient()
+        events = load_events(args.events) if args.events else None
         results = []
+        candles_by_symbol = {}
         for symbol in config.symbols:
             candles = client.fetch_candles(symbol, config.granularity, config.limit)
+            candles_by_symbol[symbol] = candles
             result = backtest_symbol(
                 symbol,
                 candles,
@@ -90,10 +124,43 @@ def main(argv: list[str] | None = None) -> int:
                 fee_rate=config.fee_rate,
                 macro_mode=config.macro_mode,
                 news_bias=config.news_bias,
+                events=events_for_symbol(events, symbol) if events is not None else None,
             )
             results.append(result)
         paths = write_report(args.output_dir, results, config_name=str(args.config))
+        candles_path = write_candles_snapshot(args.output_dir, candles_by_symbol)
+        coverage_path = write_coverage(args.output_dir, candles_by_symbol, interval=config.granularity)
+        decisions_path = write_decision_records(args.output_dir, results, interval=config.granularity)
+        markers_path = write_chart_markers(args.output_dir, results, interval=config.granularity)
+        print(f"Candles snapshot written: {candles_path}")
+        print(f"Coverage written: {coverage_path}")
+        print(f"Decision records written: {decisions_path}")
+        print(f"Chart markers written: {markers_path}")
+        if args.events:
+            explanations = explain_trades(results, events or [], window_hours=24)
+            write_trade_explanations(args.output_dir / "trade-explanations.json", explanations)
+            print(f"Trade explanations written: {args.output_dir / 'trade-explanations.json'}")
+        coverage_payload = json.loads(coverage_path.read_text(encoding="utf-8"))
+        report_text = paths["markdown"].read_text(encoding="utf-8")
+        trades_csv = paths["trades_csv"].read_text(encoding="utf-8")
+        run_date = datetime.now(UTC).strftime("%Y-%m-%d")
+        for result in results:
+            write_normalized_artifacts(
+                root_dir=Path("data"),
+                symbol=result.symbol,
+                interval=config.granularity,
+                run_date=run_date,
+                candles=candles_by_symbol[result.symbol],
+                results=[result],
+                coverage={"symbols": {result.symbol: coverage_payload.get("symbols", {}).get(result.symbol, {})}},
+                report_text=report_text,
+                trades_csv=trades_csv,
+            )
         print(f"Report written: {paths['markdown']}")
+        return 0
+
+    if args.command == "web":
+        serve_dashboard(args.config, args.output_dir, port=args.port, events_path=args.events)
         return 0
 
     if args.command == "playbook-list":

@@ -11,11 +11,12 @@ class BitgetPublicClient:
     base_url = "https://api.bitget.com/api/v3/market/candles"
 
     def build_candles_url(self, symbol: str, interval: str, limit: int) -> str:
+        normalized_interval = _normalize_interval(interval)
         params = urlencode(
             {
                 "category": "USDT-FUTURES",
                 "symbol": symbol.upper(),
-                "interval": interval,
+                "interval": normalized_interval,
                 "kLineType": "MARKET",
                 "limit": str(limit),
             }
@@ -27,6 +28,12 @@ class BitgetPublicClient:
         with urlopen(url, timeout=15) as response:
             raw = json.loads(response.read().decode("utf-8"))
         return parse_candles_response(raw)
+
+
+def _normalize_interval(interval: str) -> str:
+    if interval.lower() == "1d":
+        return "1D"
+    return interval
 
 
 def parse_candles_response(raw: dict) -> list[Candle]:
