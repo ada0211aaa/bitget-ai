@@ -1,0 +1,15 @@
+{
+  "symbols": {
+    "AMDUSDT": {
+      "symbol": "AMDUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 122,
+      "start_date": "2025-12-19",
+      "end_date": "2026-06-16",
+      "kline_coverage": "2025-12-19 -> 2026-06-16",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2025-12-19 -> 2026-06-16"
+    }
+  }
+}

@@ -20,6 +20,8 @@ SYMBOL_NAMES = {
     "GOOGLUSDT": "谷歌",
     "AMDUSDT": "AMD",
     "METAUSDT": "Meta",
+    "AAPLUSDT": "苹果",
+    "TSLAUSDT": "特斯拉",
 }
 SIDE_LABELS = {"buy": "买入", "sell": "卖出"}
 SENTIMENT_LABELS = {"bullish": "利好", "bearish": "利空", "neutral": "中性"}
@@ -60,6 +62,9 @@ def build_dashboard_payload(
     price_series = _read_price_series(output_dir / "candles.json")
     coverage = _read_coverage(output_dir / "coverage.json")
     chart_markers = _read_chart_markers(output_dir / "markers.json")
+    candidate_markers = _read_candidate_markers(output_dir / "candidate-markers.json")
+    technical_candidates = _read_technical_candidates(output_dir / "technical-candidates.json")
+    news_coverage = _read_news_coverage(output_dir / "news-coverage.json")
     decision_rows = _build_decision_rows(decision_records, trade_explanations, filtered_events, config.symbols)
     return {
         "status": {
@@ -78,6 +83,8 @@ def build_dashboard_payload(
             "fee_rate": config.fee_rate,
             "macro_mode": config.macro_mode,
             "news_bias": config.news_bias,
+            "price_source": config.price_source,
+            "decision_mode": config.decision_mode,
         },
         "focus_symbol": FOCUS_SYMBOL,
         "symbol_overview": _build_symbol_overview(config.symbols, summary, trades, decision_rows, price_series, coverage),
@@ -88,7 +95,10 @@ def build_dashboard_payload(
         "events": filtered_events,
         "price_series": price_series,
         "chart_markers": chart_markers,
+        "candidate_markers": candidate_markers,
+        "technical_candidates": technical_candidates,
         "coverage": coverage,
+        "news_coverage": news_coverage,
         "playbook": _read_playbook_report(playbook_report),
         "submission_checklist": [
             "GitHub 仓库链接",
@@ -235,6 +245,38 @@ def _read_chart_markers(path: Path) -> dict[str, list[dict[str, Any]]]:
     return grouped
 
 
+def _read_candidate_markers(path: Path) -> dict[str, list[dict[str, Any]]]:
+    if not path.exists():
+        return {}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    markers = raw.get("candidate_markers", []) if isinstance(raw, dict) else []
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for marker in markers:
+        if not isinstance(marker, dict):
+            continue
+        symbol = str(marker.get("symbol", ""))
+        if symbol:
+            grouped.setdefault(symbol, []).append(marker)
+    return grouped
+
+
+def _read_technical_candidates(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    rows = raw.get("technical_candidates", []) if isinstance(raw, dict) else []
+    if not isinstance(rows, list):
+        return []
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def _read_news_coverage(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {"symbols": {}}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return raw if isinstance(raw, dict) else {"symbols": {}}
+
+
 def _read_playbook_report(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"available": False, "text": ""}
@@ -321,6 +363,9 @@ def _decision_record_row(row: dict[str, Any], index: int, rows: list[dict[str, A
         "news_sentiment": _translate_sentiment(str(row.get("news_sentiment", ""))),
         "news_strength": str(row.get("news_strength", "")) or "未分级",
         "news_direction": str(row.get("news_direction", "")) or "无方向",
+        "news_topic": str(row.get("news_topic", "")) or "unknown",
+        "news_time_horizon": str(row.get("news_time_horizon", "")) or "short_term",
+        "stock_relevance": str(row.get("stock_relevance", "")) or "direct",
         "technical_confirmation": str(row.get("technical_confirmation", "")) or "未记录",
         "cooldown_state": str(row.get("cooldown_state", "")) or "未记录",
         "news_url": news_url,
@@ -354,6 +399,9 @@ def _decision_row(row: dict[str, Any], index: int, rows: list[dict[str, Any]], e
         "news_sentiment": news_sentiment,
         "news_strength": news_sentiment if event else "无新闻",
         "news_direction": _legacy_news_direction(news_sentiment),
+        "news_topic": str(event.get("topic", "unknown")) if event else "unknown",
+        "news_time_horizon": str(event.get("time_horizon", "short_term")) if event else "short_term",
+        "stock_relevance": str(event.get("stock_relevance", "direct")) if event else "direct",
         "technical_confirmation": "未记录",
         "cooldown_state": "未记录",
         "news_url": news_url,

@@ -1,0 +1,59 @@
+{
+  "symbols": {
+    "NVDAUSDT": {
+      "symbol": "NVDAUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 686,
+      "start_date": "2023-09-19",
+      "end_date": "2026-06-12",
+      "kline_coverage": "2023-09-19 -> 2026-06-12",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-19 -> 2026-06-12"
+    },
+    "AMDUSDT": {
+      "symbol": "AMDUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 686,
+      "start_date": "2023-09-19",
+      "end_date": "2026-06-12",
+      "kline_coverage": "2023-09-19 -> 2026-06-12",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-19 -> 2026-06-12"
+    },
+    "TSLAUSDT": {
+      "symbol": "TSLAUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 686,
+      "start_date": "2023-09-19",
+      "end_date": "2026-06-12",
+      "kline_coverage": "2023-09-19 -> 2026-06-12",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-19 -> 2026-06-12"
+    },
+    "AAPLUSDT": {
+      "symbol": "AAPLUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 686,
+      "start_date": "2023-09-19",
+      "end_date": "2026-06-12",
+      "kline_coverage": "2023-09-19 -> 2026-06-12",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-19 -> 2026-06-12"
+    },
+    "MSFTUSDT": {
+      "symbol": "MSFTUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 686,
+      "start_date": "2023-09-19",
+      "end_date": "2026-06-12",
+      "kline_coverage": "2023-09-19 -> 2026-06-12",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-19 -> 2026-06-12"
+    }
+  }
+}

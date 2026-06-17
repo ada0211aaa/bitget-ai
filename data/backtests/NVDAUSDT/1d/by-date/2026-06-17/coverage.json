@@ -1,0 +1,15 @@
+{
+  "symbols": {
+    "NVDAUSDT": {
+      "symbol": "NVDAUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 358,
+      "start_date": "2025-01-13",
+      "end_date": "2026-06-16",
+      "kline_coverage": "2025-01-13 -> 2026-06-16",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2025-01-13 -> 2026-06-16"
+    }
+  }
+}

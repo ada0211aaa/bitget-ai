@@ -16,7 +16,9 @@ def test_build_dashboard_payload_reads_reports_and_marks_backtest_only(tmp_path:
   "trade_fraction": 0.25,
   "fee_rate": 0.0006,
   "macro_mode": "neutral",
-  "news_bias": "neutral"
+  "news_bias": "neutral",
+  "price_source": "yahoo_chart_daily",
+  "ticker_map": {"NVDAUSDT": "NVDA", "AMDUSDT": "AMD"}
 }
 """.strip(),
         encoding="utf-8",
@@ -162,6 +164,9 @@ def test_build_dashboard_payload_reads_reports_and_marks_backtest_only(tmp_path:
                         "news_url": "https://example.com/news",
                         "news_sentiment": "bullish",
                         "news_source_action": "查看原文",
+                        "news_topic": "earnings_guidance",
+                        "news_time_horizon": "medium_term",
+                        "stock_relevance": "direct",
                     },
                     {
                         "decision_id": "AMDUSDT-15m-20260608-buy-001",
@@ -237,12 +242,68 @@ def test_build_dashboard_payload_reads_reports_and_marks_backtest_only(tmp_path:
         ),
         encoding="utf-8",
     )
+    (report_dir / "technical-candidates.json").write_text(
+        json.dumps(
+            {
+                "technical_candidates": [
+                    {
+                        "symbol": "NVDAUSDT",
+                        "date": "2026-06-08",
+                        "timestamp_ms": 1780916400000,
+                        "price": 209.66,
+                        "candidate_type": "buy_watch",
+                        "technical_reasons": ["price_above_ma50"],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    (report_dir / "news-coverage.json").write_text(
+        json.dumps(
+            {
+                "symbols": {
+                    "NVDAUSDT": {
+                        "symbol": "NVDAUSDT",
+                        "event_count": 2,
+                        "start_date": "2026-06-01",
+                        "end_date": "2026-06-08",
+                        "coverage": "2026-06-01 -> 2026-06-08",
+                        "fetched_at": "2026-06-17T09:00:00Z",
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (report_dir / "candidate-markers.json").write_text(
+        json.dumps(
+            {
+                "candidate_markers": [
+                    {
+                        "symbol": "NVDAUSDT",
+                        "date": "2026-06-08",
+                        "timestamp_ms": 1780916400000,
+                        "action": "candidate",
+                        "label": "观察",
+                        "price": 209.66,
+                        "position": "inBar",
+                        "shape": "circle",
+                        "color": "#38bdf8",
+                        "candidate_type": "buy_watch",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
 
     payload = build_dashboard_payload(config, report_dir, playbook_report=tmp_path / "missing.md", events_path=events)
 
     assert payload["status"]["mode"] == "backtest-only"
     assert payload["status"]["safe_notice"] == "本页面只读取回测报告，不下单、不查账户、不展示密钥。"
     assert payload["config"]["symbols"] == ["NVDAUSDT", "AMDUSDT"]
+    assert payload["config"]["price_source"] == "yahoo_chart_daily"
     assert payload["summary"][0]["symbol"] == "NVDAUSDT"
     assert payload["trades"][0]["side"] == "buy"
     assert payload["trade_explanations"][0]["matched_events"] == ["event-1"]
@@ -250,7 +311,10 @@ def test_build_dashboard_payload_reads_reports_and_marks_backtest_only(tmp_path:
     assert payload["events"][0]["source_type"] == "bitget_news_briefing"
     assert payload["price_series"]["NVDAUSDT"][0]["close"] == 209.66
     assert payload["chart_markers"]["NVDAUSDT"][0]["decision_id"] == "NVDAUSDT-15m-20260608-buy-001"
+    assert payload["candidate_markers"]["NVDAUSDT"][0]["action"] == "candidate"
     assert payload["coverage"]["symbols"]["AMDUSDT"]["interval"] == "1d"
+    assert payload["technical_candidates"][0]["candidate_type"] == "buy_watch"
+    assert payload["news_coverage"]["symbols"]["NVDAUSDT"]["event_count"] == 2
     assert payload["playbook"]["available"] is False
     assert payload["submission_checklist"][0] == "GitHub 仓库链接"
     assert payload["focus_symbol"] == {"symbol": "NVDAUSDT", "name": "英伟达"}
@@ -280,6 +344,9 @@ def test_build_dashboard_payload_reads_reports_and_marks_backtest_only(tmp_path:
     assert decision["news_sentiment"] == "利好"
     assert decision["news_strength"] == "强利好"
     assert decision["news_direction"] == "看多"
+    assert decision["news_topic"] == "earnings_guidance"
+    assert decision["news_time_horizon"] == "medium_term"
+    assert decision["stock_relevance"] == "direct"
     assert decision["technical_confirmation"] == "已确认"
     assert decision["cooldown_state"] == "可交易"
     assert decision["news_url"] == "https://example.com/news"

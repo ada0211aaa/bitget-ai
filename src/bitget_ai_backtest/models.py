@@ -56,6 +56,9 @@ class DecisionRecord:
     news_url: str = ""
     news_sentiment: str = ""
     news_source_action: str = "无新闻来源"
+    news_topic: str = "unknown"
+    news_time_horizon: str = "short_term"
+    stock_relevance: str = "direct"
     quantity: float = 0.0
     fee: float = 0.0
 

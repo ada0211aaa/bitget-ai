@@ -3,26 +3,33 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .backtester import backtest_symbol
 from .bitget_client import BitgetPublicClient, parse_candles_response
 from .config import load_config
 from .env import load_playbook_api_key
-from .events import collect_events, events_for_symbol, load_events, write_events
+from .equity_client import YahooChartDailyClient
+from .events import collect_events, deduplicate_events, events_for_symbol, load_events, write_events
 from .explanations import explain_trades, write_trade_explanations
+from .external_news_collectors import fetch_google_news_search_events, fetch_sec_edgar_events, load_daily_stock_analysis_archive
+from .news_library import read_news_coverage, read_news_library, write_news_library
 from .playbook_client import PlaybookClient
 from .playbook_package import create_package_archive
 from .reporting import (
     candles_to_rows,
     write_candles_snapshot,
+    write_candidate_markers,
     write_chart_markers,
     write_coverage,
     write_decision_records,
     write_normalized_artifacts,
+    write_news_coverage,
     write_report,
+    write_technical_candidates,
 )
+from .technical_candidates import build_technical_candidates
 from .web import serve_dashboard
 
 
@@ -38,21 +45,37 @@ def main(argv: list[str] | None = None) -> int:
     fetch_parser.add_argument("--granularity", default="15m")
     fetch_parser.add_argument("--limit", type=int, default=200)
     fetch_parser.add_argument("--output", type=Path, required=True)
+    fetch_parser.add_argument("--source", default="bitget_public", choices=["bitget_public", "yahoo_chart_daily"])
 
     events_parser = subparsers.add_parser("fetch-events", help="Fetch news/events for configured symbols")
     events_parser.add_argument("--config", type=Path, default=Path("configs/default_universe.json"))
     events_parser.add_argument("--output", type=Path, default=Path("data/events/us_stock_events.json"))
     events_parser.add_argument("--skill-export-dir", type=Path, default=Path("data/bitget-skills"))
 
+    news_library_parser = subparsers.add_parser("fetch-news-library", help="Fetch and persist a per-symbol news library")
+    news_library_parser.add_argument("--config", type=Path, default=Path("configs/us_stock_daily_external.json"))
+    news_library_parser.add_argument("--days", type=int, default=30)
+    news_library_parser.add_argument("--output-dir", type=Path, default=Path("data/news"))
+    news_library_parser.add_argument("--skill-export-dir", type=Path, default=Path("data/bitget-skills"))
+    news_library_parser.add_argument(
+        "--external-news-archive",
+        type=Path,
+        default=Path("/Users/ada/Documents/daily_stock_analysis-main/data/news_archive"),
+    )
+    news_library_parser.add_argument("--include-sec-edgar", action="store_true")
+    news_library_parser.add_argument("--include-web-search", action="store_true")
+
     backtest_parser = subparsers.add_parser("backtest", help="Backtest from live public candles")
     backtest_parser.add_argument("--config", type=Path, default=Path("configs/default_universe.json"))
     backtest_parser.add_argument("--output-dir", type=Path, default=Path("reports/latest"))
     backtest_parser.add_argument("--events", type=Path, default=None)
+    backtest_parser.add_argument("--news-library", type=Path, default=None)
 
     web_parser = subparsers.add_parser("web", help="Serve local backtest-only web dashboard")
     web_parser.add_argument("--config", type=Path, default=Path("configs/default_universe.json"))
     web_parser.add_argument("--output-dir", type=Path, default=Path("reports/latest"))
     web_parser.add_argument("--events", type=Path, default=Path("data/events/us_stock_events.json"))
+    web_parser.add_argument("--news-library", type=Path, default=None, help="Accepted for command consistency; dashboard reads generated report files")
     web_parser.add_argument("--port", type=int, default=8000)
 
     playbook_list_parser = subparsers.add_parser("playbook-list", help="Call Playbook API to list playbooks")
@@ -94,10 +117,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "fetch":
-        candles = BitgetPublicClient().fetch_candles(args.symbol, args.granularity, args.limit)
+        fetch_symbol = _ticker_for_source(args.symbol, args.source, {})
+        candles = _fetch_candles_for_source(
+            source=args.source,
+            symbol=fetch_symbol,
+            granularity=args.granularity,
+            limit=args.limit,
+        )
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(candles_to_rows(candles), indent=2, ensure_ascii=False), encoding="utf-8")
-        print(f"Fetched {len(candles)} candles for {args.symbol.upper()} into {args.output}")
+        args.output.write_text(json.dumps(candles_to_rows(candles, source=args.source), indent=2, ensure_ascii=False), encoding="utf-8")
+        print(f"Fetched {len(candles)} candles for {args.symbol.upper()} from {args.source} into {args.output}")
         return 0
 
     if args.command == "fetch-events":
@@ -107,15 +136,51 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Events written: {args.output}")
         return 0
 
+    if args.command == "fetch-news-library":
+        config = load_config(args.config)
+        if args.days != 30:
+            print(f"Warning: first version is designed for 30 days; requested {args.days} days")
+        events = collect_events(config, skill_export_dir=args.skill_export_dir)
+        archive_events = load_daily_stock_analysis_archive(args.external_news_archive, config.symbols, config.ticker_map)
+        if archive_events:
+            print(f"Collected {len(archive_events)} events from daily_stock_analysis archive")
+            events.extend(archive_events)
+        if args.include_sec_edgar:
+            sec_events = fetch_sec_edgar_events(config.symbols, config.ticker_map)
+            print(f"Collected {len(sec_events)} events from SEC EDGAR")
+            events.extend(sec_events)
+        if args.include_web_search:
+            web_events = fetch_google_news_search_events(config.symbols, config.ticker_map, days=args.days)
+            print(f"Collected {len(web_events)} events from Google News search")
+            events.extend(web_events)
+        events = _filter_events_by_days(events, args.days)
+        events = deduplicate_events(events)
+        written = write_news_library(args.output_dir, events)
+        print(f"News library written: {args.output_dir}")
+        print(f"Symbols written: {', '.join(sorted(written)) if written else 'none'}")
+        return 0
+
     if args.command == "backtest":
         config = load_config(args.config)
-        client = BitgetPublicClient()
-        events = load_events(args.events) if args.events else None
+        if args.news_library:
+            events = read_news_library(args.news_library, config.symbols)
+            news_coverage = read_news_coverage(args.news_library, config.symbols)
+        else:
+            events = load_events(args.events) if args.events else None
+            news_coverage = {}
         results = []
         candles_by_symbol = {}
+        candidates_by_symbol = {}
         for symbol in config.symbols:
-            candles = client.fetch_candles(symbol, config.granularity, config.limit)
+            fetch_symbol = _ticker_for_source(symbol, config.price_source, config.ticker_map)
+            candles = _fetch_candles_for_source(
+                source=config.price_source,
+                symbol=fetch_symbol,
+                granularity=config.granularity,
+                limit=config.limit,
+            )
             candles_by_symbol[symbol] = candles
+            candidates_by_symbol[symbol] = build_technical_candidates(symbol, candles)
             result = backtest_symbol(
                 symbol,
                 candles,
@@ -125,17 +190,25 @@ def main(argv: list[str] | None = None) -> int:
                 macro_mode=config.macro_mode,
                 news_bias=config.news_bias,
                 events=events_for_symbol(events, symbol) if events is not None else None,
+                decision_mode=config.decision_mode,
             )
             results.append(result)
         paths = write_report(args.output_dir, results, config_name=str(args.config))
-        candles_path = write_candles_snapshot(args.output_dir, candles_by_symbol)
-        coverage_path = write_coverage(args.output_dir, candles_by_symbol, interval=config.granularity)
+        candles_path = write_candles_snapshot(args.output_dir, candles_by_symbol, source=config.price_source)
+        coverage_path = write_coverage(args.output_dir, candles_by_symbol, interval=config.granularity, source=config.price_source)
         decisions_path = write_decision_records(args.output_dir, results, interval=config.granularity)
         markers_path = write_chart_markers(args.output_dir, results, interval=config.granularity)
+        candidates_path = write_technical_candidates(args.output_dir, candidates_by_symbol)
+        candidate_markers_path = write_candidate_markers(args.output_dir, candidates_by_symbol)
         print(f"Candles snapshot written: {candles_path}")
         print(f"Coverage written: {coverage_path}")
         print(f"Decision records written: {decisions_path}")
         print(f"Chart markers written: {markers_path}")
+        print(f"Technical candidates written: {candidates_path}")
+        print(f"Candidate markers written: {candidate_markers_path}")
+        if args.news_library:
+            news_coverage_path = write_news_coverage(args.output_dir, news_coverage)
+            print(f"News coverage written: {news_coverage_path}")
         if args.events:
             explanations = explain_trades(results, events or [], window_hours=24)
             write_trade_explanations(args.output_dir / "trade-explanations.json", explanations)
@@ -155,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
                 coverage={"symbols": {result.symbol: coverage_payload.get("symbols", {}).get(result.symbol, {})}},
                 report_text=report_text,
                 trades_csv=trades_csv,
+                source=config.price_source,
             )
         print(f"Report written: {paths['markdown']}")
         return 0
@@ -218,6 +292,35 @@ def main(argv: list[str] | None = None) -> int:
 def _write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def _filter_events_by_days(events, days: int):
+    cutoff = datetime.now(UTC) - timedelta(days=days)
+    filtered = []
+    for event in events:
+        try:
+            published_at = datetime.fromisoformat(event.published_at.replace("Z", "+00:00"))
+        except ValueError:
+            filtered.append(event)
+            continue
+        if published_at >= cutoff:
+            filtered.append(event)
+    return filtered
+
+
+def _ticker_for_source(symbol: str, source: str, ticker_map: dict[str, str]) -> str:
+    normalized = symbol.upper()
+    if source == "yahoo_chart_daily":
+        return ticker_map.get(normalized, normalized.removesuffix("USDT"))
+    return normalized
+
+
+def _fetch_candles_for_source(*, source: str, symbol: str, granularity: str, limit: int):
+    if source == "bitget_public":
+        return BitgetPublicClient().fetch_candles(symbol, granularity, limit)
+    if source == "yahoo_chart_daily":
+        return YahooChartDailyClient().fetch_candles(symbol, granularity, limit)
+    raise ValueError(f"unsupported price source: {source}")
 
 
 def _payload_data(payload: dict) -> dict:

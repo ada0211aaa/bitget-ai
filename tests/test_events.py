@@ -61,6 +61,89 @@ def test_write_and_load_events_round_trip_with_deduplication(tmp_path: Path) -> 
     assert loaded[0].source_type == "bitget_news_briefing"
 
 
+def test_load_events_defaults_ai_judgment_fields_for_legacy_files(tmp_path: Path) -> None:
+    output = tmp_path / "events.json"
+    output.write_text(
+        """
+{
+  "events": [
+    {
+      "event_id": "legacy",
+      "symbol": "NVDAUSDT",
+      "published_at": "2026-06-01T10:00:00Z",
+      "title": "Nvidia raises guidance on AI demand",
+      "source_name": "Bitget news-briefing",
+      "source_type": "bitget_news_briefing",
+      "url": "https://example.com/nvda",
+      "sentiment": "bullish",
+      "confidence": 0.8,
+      "reason": "Matched bullish keyword: raises guidance"
+    }
+  ]
+}
+""".strip(),
+        encoding="utf-8",
+    )
+
+    loaded = load_events(output)
+
+    assert loaded[0].strength == "strong"
+    assert loaded[0].topic == "unknown"
+    assert loaded[0].time_horizon == "short_term"
+    assert loaded[0].stock_relevance == "direct"
+
+
+def test_bitget_skill_exports_preserve_ai_judgment_fields(tmp_path: Path) -> None:
+    from bitget_ai_backtest.config import BacktestConfig
+    from bitget_ai_backtest.events import collect_events
+
+    skill_dir = tmp_path / "bitget-skills"
+    skill_dir.mkdir()
+    (skill_dir / "news.json").write_text(
+        """
+{
+  "events": [
+    {
+      "event_id": "ai-news",
+      "symbol": "NVDAUSDT",
+      "published_at": "2026-06-01T10:00:00Z",
+      "title": "Nvidia raises guidance on AI demand",
+      "source_name": "Bitget news-briefing",
+      "source_type": "bitget_news_briefing",
+      "url": "https://example.com/nvda",
+      "sentiment": "bullish",
+      "confidence": 0.82,
+      "reason": "Bitget AI judges the guidance raise as strong and directly relevant.",
+      "strength": "strong",
+      "topic": "earnings_guidance",
+      "time_horizon": "medium_term",
+      "stock_relevance": "direct"
+    }
+  ]
+}
+""".strip(),
+        encoding="utf-8",
+    )
+    config = BacktestConfig(
+        symbols=("NVDAUSDT",),
+        granularity="1d",
+        limit=100,
+        initial_cash=10000,
+        trade_fraction=0.25,
+        fee_rate=0.0006,
+        macro_mode="neutral",
+        news_bias="neutral",
+    )
+
+    events = collect_events(config, skill_export_dir=skill_dir)
+
+    assert len(events) == 1
+    assert events[0].strength == "strong"
+    assert events[0].topic == "earnings_guidance"
+    assert events[0].time_horizon == "medium_term"
+    assert events[0].stock_relevance == "direct"
+
+
 def test_events_for_symbol_filters_case_insensitively() -> None:
     events = [
         NewsEvent("a", "NVDAUSDT", "2026-06-01T10:00:00Z", "a", "s", "bitget_news_briefing", "", "neutral", 0.5, "r"),
@@ -112,3 +195,35 @@ def test_events_for_symbol_filters_public_feed_noise_but_keeps_bitget_signals() 
     ]
 
     assert [event.event_id for event in events_for_symbol(events, "NVDAUSDT")] == ["nvda", "bitget"]
+
+
+def test_events_for_symbol_recognizes_common_stock_aliases() -> None:
+    events = [
+        NewsEvent(
+            "apple",
+            "AAPLUSDT",
+            "2026-06-01T10:00:00Z",
+            "Apple shares rise after iPhone demand improves",
+            "Yahoo Finance RSS",
+            PUBLIC_SOURCE_TYPE,
+            "https://example.com/apple",
+            "bullish",
+            0.7,
+            "Matched bullish keyword: strong demand",
+        ),
+        NewsEvent(
+            "tesla",
+            "TSLAUSDT",
+            "2026-06-01T10:00:00Z",
+            "Tesla stock slips after delivery downgrade",
+            "Yahoo Finance RSS",
+            PUBLIC_SOURCE_TYPE,
+            "https://example.com/tesla",
+            "bearish",
+            0.7,
+            "Matched bearish keyword: downgrade",
+        ),
+    ]
+
+    assert [event.event_id for event in events_for_symbol(events, "AAPLUSDT")] == ["apple"]
+    assert [event.event_id for event in events_for_symbol(events, "TSLAUSDT")] == ["tesla"]

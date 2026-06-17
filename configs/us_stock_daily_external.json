@@ -1,0 +1,19 @@
+{
+  "symbols": ["NVDAUSDT", "AMDUSDT", "TSLAUSDT", "AAPLUSDT", "MSFTUSDT"],
+  "granularity": "1d",
+  "limit": 1000,
+  "initial_cash": 10000,
+  "trade_fraction": 0.25,
+  "fee_rate": 0.0006,
+  "macro_mode": "neutral",
+  "news_bias": "neutral",
+  "decision_mode": "aggressive_news",
+  "price_source": "yahoo_chart_daily",
+  "ticker_map": {
+    "NVDAUSDT": "NVDA",
+    "AMDUSDT": "AMD",
+    "TSLAUSDT": "TSLA",
+    "AAPLUSDT": "AAPL",
+    "MSFTUSDT": "MSFT"
+  }
+}

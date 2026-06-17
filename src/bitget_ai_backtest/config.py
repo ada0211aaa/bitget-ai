@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +16,9 @@ class BacktestConfig:
     fee_rate: float
     macro_mode: str
     news_bias: str
+    price_source: str = "bitget_public"
+    ticker_map: dict[str, str] = field(default_factory=dict)
+    decision_mode: str = "conservative"
 
 
 def load_config(path: Path) -> BacktestConfig:
@@ -33,6 +36,9 @@ def load_config(path: Path) -> BacktestConfig:
         fee_rate=_non_negative_float(raw, "fee_rate"),
         macro_mode=_choice(raw, "macro_mode", {"risk_on", "neutral", "risk_off"}),
         news_bias=_choice(raw, "news_bias", {"bullish", "neutral", "bearish"}),
+        price_source=_choice_with_default(raw, "price_source", "bitget_public", {"bitget_public", "yahoo_chart_daily"}),
+        ticker_map=_ticker_map(raw),
+        decision_mode=_choice_with_default(raw, "decision_mode", "conservative", {"conservative", "aggressive_news"}),
     )
 
 
@@ -76,3 +82,17 @@ def _choice(raw: dict[str, Any], key: str, allowed: set[str]) -> str:
     if value not in allowed:
         raise ValueError(f"config field {key} must be one of {sorted(allowed)}")
     return value
+
+
+def _choice_with_default(raw: dict[str, Any], key: str, default: str, allowed: set[str]) -> str:
+    value = str(raw.get(key, default))
+    if value not in allowed:
+        raise ValueError(f"config field {key} must be one of {sorted(allowed)}")
+    return value
+
+
+def _ticker_map(raw: dict[str, Any]) -> dict[str, str]:
+    value = raw.get("ticker_map", {})
+    if not isinstance(value, dict):
+        raise ValueError("config field ticker_map must be an object")
+    return {str(symbol).upper(): str(ticker).upper() for symbol, ticker in value.items()}

@@ -28,10 +28,15 @@ def test_static_dashboard_shell_is_chinese() -> None:
     assert 'id="decision-table"' in html
     assert "新闻强度" in html
     assert "新闻方向" in html
+    assert "新闻主题" in html
+    assert "影响周期" in html
+    assert "股票相关性" in html
     assert "技术确认" in html
     assert "冷却状态" in html
     assert "查看原文" in html
     assert "为什么买 / 为什么卖" in html
+    assert "新闻库覆盖" in html
+    assert "技术候选观察点" in html
     assert "新闻与事件信号" in html
 
 
@@ -48,6 +53,7 @@ def test_static_dashboard_localizes_dynamic_labels() -> None:
     script = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
 
     assert "原始股票池：" in script
+    assert "价格数据源：" in script
     assert "买入" in script
     assert "看多" in script
     assert "公开新闻降级源" in script
@@ -57,6 +63,8 @@ def test_static_dashboard_localizes_dynamic_labels() -> None:
     assert "renderMarketTable" in script
     assert "renderDetailView" in script
     assert "renderCoverage" in script
+    assert "renderNewsCoverage" in script
+    assert "renderTechnicalCandidates" in script
     assert "renderKlineChart" in script
     assert "scrollToDecisionRow" in script
     assert "K线覆盖" in script
@@ -72,6 +80,12 @@ def test_static_dashboard_localizes_dynamic_labels() -> None:
     assert "查看信号详情" in script
     assert "无新闻来源" in script
     assert "news_strength" in script
+    assert "news_topic" in script
+    assert "news_time_horizon" in script
+    assert "stock_relevance" in script
+    assert "data.chart_markers" in script
+    assert "mergeChartMarkers" not in script
+    assert "candidate_type" in script
     assert "technical_confirmation" in script
     assert "cooldown_state" in script
     assert "交易决策明细" in script

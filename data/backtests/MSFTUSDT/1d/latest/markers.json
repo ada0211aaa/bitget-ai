@@ -1,0 +1,136 @@
+{
+  "markers": [
+    {
+      "decision_id": "MSFTUSDT-1d-20250226-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-02-26",
+      "timestamp_ms": 1740580200000,
+      "action": "buy",
+      "label": "买入",
+      "price": 399.7300109863281,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250325-sell-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-03-25",
+      "timestamp_ms": 1742909400000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 395.1600036621094,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250430-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-04-30",
+      "timestamp_ms": 1746019800000,
+      "action": "buy",
+      "label": "买入",
+      "price": 395.260009765625,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250821-sell-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-08-21",
+      "timestamp_ms": 1755783000000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 504.239990234375,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250908-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-09-08",
+      "timestamp_ms": 1757338200000,
+      "action": "buy",
+      "label": "买入",
+      "price": 498.20001220703125,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250909-sell-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-09-09",
+      "timestamp_ms": 1757424600000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 498.4100036621094,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250910-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-09-10",
+      "timestamp_ms": 1757511000000,
+      "action": "buy",
+      "label": "买入",
+      "price": 500.3699951171875,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20250911-sell-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-09-11",
+      "timestamp_ms": 1757597400000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 501.010009765625,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20251002-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-10-02",
+      "timestamp_ms": 1759411800000,
+      "action": "buy",
+      "label": "买入",
+      "price": 515.739990234375,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20251010-sell-001",
+      "symbol": "MSFTUSDT",
+      "date": "2025-10-10",
+      "timestamp_ms": 1760103000000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 510.9599914550781,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20260616-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2026-06-16",
+      "timestamp_ms": 1781616600000,
+      "action": "buy",
+      "label": "买入",
+      "price": 393.8299865722656,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    }
+  ]
+}

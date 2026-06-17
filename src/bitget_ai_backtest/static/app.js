@@ -26,6 +26,27 @@ const SOURCE_LABELS = {
   public_news_fallback: "公开新闻降级源"
 };
 
+const TOPIC_LABELS = {
+  earnings_guidance: "财报/指引",
+  ai_demand: "AI需求",
+  product: "产品/发布",
+  regulation: "监管",
+  macro: "宏观",
+  unknown: "未分类"
+};
+
+const TIME_HORIZON_LABELS = {
+  short_term: "短期",
+  medium_term: "中期",
+  long_term: "长期"
+};
+
+const RELEVANCE_LABELS = {
+  direct: "直接相关",
+  indirect: "间接相关",
+  weak: "弱相关"
+};
+
 const REASON_LABELS = {
   trend_up: "价格趋势走强",
   trend_down: "价格趋势走弱",
@@ -81,6 +102,8 @@ function renderConfig(config) {
     `单次仓位：${formatPercent(config.trade_fraction)}`,
     `手续费率：${formatPercent(config.fee_rate)}`,
     `宏观模式：${translateView(config.macro_mode)}`,
+    `价格数据源：${translatePriceSource(config.price_source)}`,
+    `决策模式：${translateDecisionMode(config.decision_mode)}`,
     `新闻降级参数：${translateSentiment(config.news_bias)}`
   ];
   container.innerHTML = `<div class="chips">${values.map((value) => `<span class="chip">${escapeHtml(value)}</span>`).join("")}</div>`;
@@ -125,6 +148,8 @@ function renderDetailView(data, symbol) {
     renderCoverage({});
     renderSummary([]);
     renderKlineChart(data.price_series, data.chart_markers, symbol);
+    renderNewsCoverage(data.news_coverage, symbol);
+    renderTechnicalCandidates([]);
     renderExplanations([]);
     renderDecisionTable([]);
     renderEvents([]);
@@ -137,6 +162,8 @@ function renderDetailView(data, symbol) {
   renderCoverage(overview);
   renderSummary(summaryRows);
   renderKlineChart(data.price_series, data.chart_markers, symbol);
+  renderNewsCoverage(data.news_coverage, symbol);
+  renderTechnicalCandidates(filterBySymbol(data.technical_candidates, symbol));
   renderExplanations(filterBySymbol(data.trade_explanations, symbol));
   renderDecisionTable(decisionRows);
   renderEvents(filterBySymbol(data.events, symbol));
@@ -186,7 +213,7 @@ function openSymbolDetail(row) {
 function renderDecisionTable(rows) {
   const body = document.querySelector("#decision-table tbody");
   if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="18" class="empty-cell">暂无交易决策明细。请先运行回测并生成交易解释。</td></tr>`;
+    body.innerHTML = `<tr><td colspan="21" class="empty-cell">暂无交易决策明细。请先运行回测并生成交易解释。</td></tr>`;
     return;
   }
   body.innerHTML = rows.map((row, index) => `
@@ -197,6 +224,9 @@ function renderDecisionTable(rows) {
       <td>${renderActionPill(row.action)}</td>
       <td>${renderStrengthPill(row.news_strength)}</td>
       <td>${escapeHtml(row.news_direction)}</td>
+      <td>${escapeHtml(translateTopic(row.news_topic))}</td>
+      <td>${escapeHtml(translateTimeHorizon(row.news_time_horizon))}</td>
+      <td>${escapeHtml(translateRelevance(row.stock_relevance))}</td>
       <td>${renderConfirmationPill(row.technical_confirmation)}</td>
       <td>${renderCooldownPill(row.cooldown_state)}</td>
       <td>${escapeHtml(row.price)}</td>
@@ -247,6 +277,44 @@ function renderCoverage(overview) {
   `).join("");
 }
 
+function renderNewsCoverage(newsCoverage, symbol) {
+  const container = document.getElementById("news-coverage-grid");
+  if (!container) return;
+  const symbols = newsCoverage && newsCoverage.symbols ? newsCoverage.symbols : {};
+  const row = symbols[symbol] || {};
+  const values = [
+    ["新闻条数", row.event_count || 0],
+    ["新闻覆盖", row.coverage || "暂无"],
+    ["最早新闻", row.start_date || "暂无"],
+    ["最新新闻", row.end_date || "暂无"]
+  ];
+  container.innerHTML = values.map(([label, value]) => `
+    <div class="coverage-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `).join("");
+}
+
+function renderTechnicalCandidates(rows) {
+  const container = document.getElementById("technical-candidates");
+  if (!container) return;
+  const candidates = (rows || []).filter((row) => row.candidate_type && row.candidate_type !== "none");
+  if (!candidates.length) {
+    container.innerHTML = `<p class="empty-state">暂无技术候选观察点。可能是技术面没有触发，或尚未运行新闻库回测。</p>`;
+    return;
+  }
+  container.innerHTML = candidates.slice(-20).reverse().map((row) => `
+    <article class="event-card">
+      <div class="card-heading">
+        <h3>${escapeHtml(row.date)} · ${escapeHtml(translateCandidateType(row.candidate_type))}</h3>
+        <span class="source-pill">${escapeHtml(formatFixed(row.price))}</span>
+      </div>
+      <p class="meta">技术原因：${escapeHtml(translateReasons(row.technical_reasons || []))}</p>
+    </article>
+  `).join("");
+}
+
 function renderExplanations(rows) {
   const container = document.getElementById("explanations");
   if (!rows.length) {
@@ -286,6 +354,7 @@ function renderEvents(events) {
       </div>
       <p>${escapeHtml(event.title)}</p>
       <p class="meta">${escapeHtml(formatDateTime(event.published_at))} · ${escapeHtml(event.source_name)}</p>
+      <p class="meta">主题：${escapeHtml(translateTopic(event.topic))} · 周期：${escapeHtml(translateTimeHorizon(event.time_horizon))} · 相关性：${escapeHtml(translateRelevance(event.stock_relevance))}</p>
       <p class="meta">${escapeHtml(event.reason)}</p>
     </article>
   `).join("");
@@ -347,13 +416,13 @@ function renderKlineChart(priceSeries, chartMarkers, symbol) {
   candleSeries.setData(candleData);
 
   const markerData = markers.map((marker) => ({
-    id: marker.decision_id,
+    id: marker.decision_id || `${marker.symbol || symbol}-${marker.date || marker.timestamp_ms}-${marker.action || "marker"}`,
     time: marker.date || dateFromTimestamp(marker.timestamp_ms),
     position: marker.position,
     color: marker.color,
     shape: marker.shape,
     text: marker.label,
-    decision_id: marker.decision_id
+    decision_id: marker.decision_id || ""
   }));
   setSeriesMarkers(candleSeries, markerData);
   chartState = {
@@ -512,6 +581,43 @@ function translateView(value) {
 
 function translateSource(value) {
   return SOURCE_LABELS[value] || value || "未知来源";
+}
+
+function translateTopic(value) {
+  return TOPIC_LABELS[value] || value || "未分类";
+}
+
+function translateTimeHorizon(value) {
+  return TIME_HORIZON_LABELS[value] || value || "短期";
+}
+
+function translateRelevance(value) {
+  return RELEVANCE_LABELS[value] || value || "直接相关";
+}
+
+function translatePriceSource(value) {
+  const labels = {
+    bitget_public: "Bitget 公共合约K线",
+    yahoo_chart_daily: "Yahoo 美股日线"
+  };
+  return labels[value] || value || "未知";
+}
+
+function translateDecisionMode(value) {
+  const labels = {
+    conservative: "保守模式",
+    aggressive_news: "激进新闻模式"
+  };
+  return labels[value] || value || "未知";
+}
+
+function translateCandidateType(value) {
+  const labels = {
+    buy_watch: "买入观察",
+    sell_watch: "卖出观察",
+    none: "非候选"
+  };
+  return labels[value] || value || "未知";
 }
 
 function translateReasons(reasons) {

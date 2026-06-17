@@ -1,0 +1,52 @@
+{
+  "markers": [
+    {
+      "decision_id": "NVDAUSDT-1d-20260616-buy-001",
+      "symbol": "NVDAUSDT",
+      "date": "2026-06-16",
+      "timestamp_ms": 1781616600000,
+      "action": "buy",
+      "label": "买入",
+      "price": 207.41000366210938,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "AMDUSDT-1d-20260616-buy-001",
+      "symbol": "AMDUSDT",
+      "date": "2026-06-16",
+      "timestamp_ms": 1781616600000,
+      "action": "buy",
+      "label": "买入",
+      "price": 507.2900085449219,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20260616-buy-001",
+      "symbol": "TSLAUSDT",
+      "date": "2026-06-16",
+      "timestamp_ms": 1781616600000,
+      "action": "buy",
+      "label": "买入",
+      "price": 404.6600036621094,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "MSFTUSDT-1d-20260616-buy-001",
+      "symbol": "MSFTUSDT",
+      "date": "2026-06-16",
+      "timestamp_ms": 1781616600000,
+      "action": "buy",
+      "label": "买入",
+      "price": 393.8299865722656,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    }
+  ]
+}

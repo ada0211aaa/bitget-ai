@@ -30,6 +30,8 @@ SYMBOL_TO_TICKER = {
     "GOOGLUSDT": "GOOGL",
     "AMDUSDT": "AMD",
     "METAUSDT": "META",
+    "AAPLUSDT": "AAPL",
+    "TSLAUSDT": "TSLA",
 }
 
 BULLISH_KEYWORDS = (
@@ -80,6 +82,10 @@ class NewsEvent:
     sentiment: str
     confidence: float
     reason: str
+    strength: str = ""
+    topic: str = "unknown"
+    time_horizon: str = "short_term"
+    stock_relevance: str = "direct"
 
 
 def score_event_sentiment(title: str, description: str = "") -> SentimentScore:
@@ -98,7 +104,7 @@ def load_events(path: Path) -> list[NewsEvent]:
     rows = raw.get("events", [])
     if not isinstance(rows, list):
         raise ValueError("event file must contain an events list")
-    return [NewsEvent(**row) for row in rows]
+    return [_event_from_row(row) for row in rows]
 
 
 def write_events(path: Path, events: list[NewsEvent]) -> None:
@@ -162,6 +168,9 @@ def _load_bitget_skill_exports(config: BacktestConfig, skill_export_dir: Path) -
             if not title or not published_at:
                 continue
             scored = score_event_sentiment(title, str(row.get("description", "")))
+            sentiment = str(row.get("sentiment", scored.sentiment))
+            confidence = float(row.get("confidence", scored.confidence))
+            reason = str(row.get("reason", scored.reason))
             events.append(
                 NewsEvent(
                     event_id=str(row.get("event_id") or _event_id(symbol, published_at, title)),
@@ -171,9 +180,13 @@ def _load_bitget_skill_exports(config: BacktestConfig, skill_export_dir: Path) -
                     source_name=str(row.get("source_name", "Bitget Agent Hub")),
                     source_type=source_type,
                     url=str(row.get("url", "")),
-                    sentiment=str(row.get("sentiment", scored.sentiment)),
-                    confidence=float(row.get("confidence", scored.confidence)),
-                    reason=str(row.get("reason", scored.reason)),
+                    sentiment=sentiment,
+                    confidence=confidence,
+                    reason=reason,
+                    strength=_normalize_strength(str(row.get("strength", "")), sentiment, confidence, title, reason),
+                    topic=str(row.get("topic", "unknown") or "unknown"),
+                    time_horizon=str(row.get("time_horizon", "short_term") or "short_term"),
+                    stock_relevance=str(row.get("stock_relevance", "direct") or "direct"),
                 )
             )
     return events
@@ -218,9 +231,55 @@ def _fetch_yahoo_rss_for_symbol(symbol: str, ticker: str) -> list[NewsEvent]:
                 sentiment=scored.sentiment,
                 confidence=scored.confidence,
                 reason=scored.reason,
+                strength=_normalize_strength("", scored.sentiment, scored.confidence, title, scored.reason),
+                topic="unknown",
+                time_horizon="short_term",
+                stock_relevance="direct",
             )
         )
     return events
+
+
+def _event_from_row(row: dict[str, Any]) -> NewsEvent:
+    sentiment = str(row.get("sentiment", "neutral"))
+    confidence = float(row.get("confidence", 0.5))
+    title = str(row.get("title", ""))
+    reason = str(row.get("reason", ""))
+    return NewsEvent(
+        event_id=str(row.get("event_id", "")),
+        symbol=str(row.get("symbol", "")).upper(),
+        published_at=_normalize_datetime(str(row.get("published_at", ""))),
+        title=title,
+        source_name=str(row.get("source_name", "")),
+        source_type=str(row.get("source_type", "")),
+        url=str(row.get("url", "")),
+        sentiment=sentiment,
+        confidence=confidence,
+        reason=reason,
+        strength=_normalize_strength(str(row.get("strength", "")), sentiment, confidence, title, reason),
+        topic=str(row.get("topic", "unknown") or "unknown"),
+        time_horizon=str(row.get("time_horizon", "short_term") or "short_term"),
+        stock_relevance=str(row.get("stock_relevance", "direct") or "direct"),
+    )
+
+
+def _normalize_strength(value: str, sentiment: str, confidence: float, title: str, reason: str) -> str:
+    normalized = value.strip().lower()
+    if normalized in {"strong", "medium", "weak"}:
+        return normalized
+    if sentiment == "bullish" and confidence >= 0.7:
+        text = f"{title} {reason}".lower()
+        if any(keyword in text for keyword in BULLISH_KEYWORDS):
+            return "strong"
+        return "medium"
+    if sentiment == "bearish" and confidence >= 0.7:
+        text = f"{title} {reason}".lower()
+        if any(keyword in text for keyword in BEARISH_KEYWORDS):
+            return "strong"
+        return "medium"
+    if sentiment in {"bullish", "bearish"}:
+        return "weak"
+    return "weak"
 
 
 def _text(item: ElementTree.Element, tag: str) -> str:
@@ -237,6 +296,8 @@ def _public_event_mentions_ticker(event: NewsEvent, ticker: str) -> bool:
         "GOOGL": ("googl", "google", "alphabet"),
         "AMD": ("amd", "advanced micro devices"),
         "META": ("meta", "facebook"),
+        "AAPL": ("aapl", "apple", "iphone"),
+        "TSLA": ("tsla", "tesla"),
     }
     text = f"{event.title} {event.reason}".lower()
     return any(alias in text for alias in aliases.get(ticker.upper(), (ticker.lower(),)))

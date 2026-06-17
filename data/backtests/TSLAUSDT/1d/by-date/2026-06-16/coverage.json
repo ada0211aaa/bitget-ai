@@ -1,0 +1,15 @@
+{
+  "symbols": {
+    "TSLAUSDT": {
+      "symbol": "TSLAUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 685,
+      "start_date": "2023-09-20",
+      "end_date": "2026-06-12",
+      "kline_coverage": "2023-09-20 -> 2026-06-12",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-20 -> 2026-06-12"
+    }
+  }
+}

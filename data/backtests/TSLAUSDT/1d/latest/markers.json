@@ -1,0 +1,88 @@
+{
+  "markers": [
+    {
+      "decision_id": "TSLAUSDT-1d-20250129-buy-001",
+      "symbol": "TSLAUSDT",
+      "date": "2025-01-29",
+      "timestamp_ms": 1738161000000,
+      "action": "buy",
+      "label": "买入",
+      "price": 389.1000061035156,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20250325-sell-001",
+      "symbol": "TSLAUSDT",
+      "date": "2025-03-25",
+      "timestamp_ms": 1742909400000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 288.1400146484375,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20250421-buy-001",
+      "symbol": "TSLAUSDT",
+      "date": "2025-04-21",
+      "timestamp_ms": 1745242200000,
+      "action": "buy",
+      "label": "买入",
+      "price": 227.5,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20250422-sell-001",
+      "symbol": "TSLAUSDT",
+      "date": "2025-04-22",
+      "timestamp_ms": 1745328600000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 237.97000122070312,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20250423-buy-001",
+      "symbol": "TSLAUSDT",
+      "date": "2025-04-23",
+      "timestamp_ms": 1745415000000,
+      "action": "buy",
+      "label": "买入",
+      "price": 250.74000549316406,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20250424-sell-001",
+      "symbol": "TSLAUSDT",
+      "date": "2025-04-24",
+      "timestamp_ms": 1745501400000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 259.510009765625,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "TSLAUSDT-1d-20260615-buy-001",
+      "symbol": "TSLAUSDT",
+      "date": "2026-06-15",
+      "timestamp_ms": 1781530200000,
+      "action": "buy",
+      "label": "买入",
+      "price": 411.1499938964844,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    }
+  ]
+}

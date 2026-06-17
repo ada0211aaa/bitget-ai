@@ -1,0 +1,16 @@
+{
+  "markers": [
+    {
+      "decision_id": "AMDUSDT-1d-20260616-buy-001",
+      "symbol": "AMDUSDT",
+      "date": "2026-06-16",
+      "timestamp_ms": 1781616600000,
+      "action": "buy",
+      "label": "买入",
+      "price": 507.2900085449219,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    }
+  ]
+}

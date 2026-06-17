@@ -1,0 +1,15 @@
+{
+  "symbols": {
+    "MSFTUSDT": {
+      "symbol": "MSFTUSDT",
+      "interval": "1d",
+      "source": "yahoo_chart_daily",
+      "rows": 687,
+      "start_date": "2023-09-19",
+      "end_date": "2026-06-15",
+      "kline_coverage": "2023-09-19 -> 2026-06-15",
+      "news_coverage": "",
+      "effective_backtest_coverage": "2023-09-19 -> 2026-06-15"
+    }
+  }
+}

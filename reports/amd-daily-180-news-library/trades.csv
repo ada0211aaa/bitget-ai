@@ -1,0 +1,2 @@
+timestamp_ms,symbol,side,price,quantity,fee,reason
+1781616600000,AMDUSDT,buy,507.29000854,4.925190636351,1.50000000,cautiously_bullish

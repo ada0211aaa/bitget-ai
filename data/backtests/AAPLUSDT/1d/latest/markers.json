@@ -1,0 +1,76 @@
+{
+  "markers": [
+    {
+      "decision_id": "AAPLUSDT-1d-20250130-buy-001",
+      "symbol": "AAPLUSDT",
+      "date": "2025-01-30",
+      "timestamp_ms": 1738247400000,
+      "action": "buy",
+      "label": "买入",
+      "price": 237.58999633789062,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "AAPLUSDT-1d-20250325-sell-001",
+      "symbol": "AAPLUSDT",
+      "date": "2025-03-25",
+      "timestamp_ms": 1742909400000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 223.75,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "AAPLUSDT-1d-20250423-buy-001",
+      "symbol": "AAPLUSDT",
+      "date": "2025-04-23",
+      "timestamp_ms": 1745415000000,
+      "action": "buy",
+      "label": "买入",
+      "price": 204.60000610351562,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "AAPLUSDT-1d-20250424-sell-001",
+      "symbol": "AAPLUSDT",
+      "date": "2025-04-24",
+      "timestamp_ms": 1745501400000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 208.3699951171875,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    },
+    {
+      "decision_id": "AAPLUSDT-1d-20250425-buy-001",
+      "symbol": "AAPLUSDT",
+      "date": "2025-04-25",
+      "timestamp_ms": 1745587800000,
+      "action": "buy",
+      "label": "买入",
+      "price": 209.27999877929688,
+      "position": "belowBar",
+      "shape": "arrowUp",
+      "color": "#22c55e"
+    },
+    {
+      "decision_id": "AAPLUSDT-1d-20250428-sell-001",
+      "symbol": "AAPLUSDT",
+      "date": "2025-04-28",
+      "timestamp_ms": 1745847000000,
+      "action": "sell",
+      "label": "卖出",
+      "price": 210.13999938964844,
+      "position": "aboveBar",
+      "shape": "arrowDown",
+      "color": "#ef4444"
+    }
+  ]
+}

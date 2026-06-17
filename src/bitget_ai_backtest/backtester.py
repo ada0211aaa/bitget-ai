@@ -17,9 +17,11 @@ def backtest_symbol(
     macro_mode: str,
     news_bias: str,
     events: list[NewsEvent] | None = None,
+    decision_mode: str = "conservative",
 ) -> BacktestResult:
     cash = initial_cash
     quantity = 0.0
+    position_high_price: float | None = None
     trades: list[Trade] = []
     decision_records: list[DecisionRecord] = []
     equity_curve: list[float] = []
@@ -33,6 +35,8 @@ def backtest_symbol(
             action = signal.action
             active_decision: DecisionRecord | None = None
             if events is not None:
+                if quantity > 0:
+                    position_high_price = max(position_high_price or candle.close, candle.close)
                 last_trade = trades[-1] if trades else None
                 active_decision = evaluate_conservative_decision(
                     symbol,
@@ -41,6 +45,8 @@ def backtest_symbol(
                     has_position=quantity > 0,
                     last_action_timestamp_ms=last_trade.timestamp_ms if last_trade else None,
                     last_action_side=last_trade.side if last_trade else None,
+                    position_high_price=position_high_price,
+                    decision_mode=decision_mode,
                 )
                 action = active_decision.action
             if action == "buy" and cash > 0 and quantity == 0:
@@ -51,6 +57,7 @@ def backtest_symbol(
                 quantity += bought
                 cash -= spend
                 trades.append(Trade(candle.timestamp_ms, symbol, "buy", candle.close, bought, fee, signal.view, signal.reasons))
+                position_high_price = candle.close
                 if active_decision is not None:
                     decision_records.append(attach_fill(active_decision, quantity=bought, fee=fee))
             elif action == "sell" and quantity > 0:
@@ -61,6 +68,7 @@ def backtest_symbol(
                 if active_decision is not None:
                     decision_records.append(attach_fill(active_decision, quantity=quantity, fee=fee))
                 quantity = 0.0
+                position_high_price = None
             elif active_decision is not None:
                 decision_records.append(active_decision)
         equity_curve.append(cash + quantity * candle.close)

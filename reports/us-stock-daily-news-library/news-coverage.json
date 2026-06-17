@@ -1,0 +1,44 @@
+{
+  "symbols": {
+    "NVDAUSDT": {
+      "symbol": "NVDAUSDT",
+      "event_count": 20,
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-17",
+      "coverage": "2026-06-16 -> 2026-06-17",
+      "fetched_at": "2026-06-17T03:48:14.973942Z"
+    },
+    "AMDUSDT": {
+      "symbol": "AMDUSDT",
+      "event_count": 20,
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-17",
+      "coverage": "2026-06-16 -> 2026-06-17",
+      "fetched_at": "2026-06-17T03:48:14.973942Z"
+    },
+    "TSLAUSDT": {
+      "symbol": "TSLAUSDT",
+      "event_count": 20,
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-17",
+      "coverage": "2026-06-16 -> 2026-06-17",
+      "fetched_at": "2026-06-17T03:48:14.973942Z"
+    },
+    "AAPLUSDT": {
+      "symbol": "AAPLUSDT",
+      "event_count": 20,
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-16",
+      "coverage": "2026-06-16 -> 2026-06-16",
+      "fetched_at": "2026-06-17T03:48:14.973942Z"
+    },
+    "MSFTUSDT": {
+      "symbol": "MSFTUSDT",
+      "event_count": 20,
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-17",
+      "coverage": "2026-06-16 -> 2026-06-17",
+      "fetched_at": "2026-06-17T03:48:14.973942Z"
+    }
+  }
+}

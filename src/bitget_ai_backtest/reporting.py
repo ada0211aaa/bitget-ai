@@ -197,6 +197,7 @@ def write_normalized_artifacts(
     coverage: dict,
     report_text: str,
     trades_csv: str,
+    source: str = "bitget_public",
 ) -> dict[str, Path]:
     market_latest = root_dir / "market" / symbol / interval / "latest"
     market_by_date = root_dir / "market" / symbol / interval / "by-date" / run_date
@@ -204,7 +205,7 @@ def write_normalized_artifacts(
     backtest_by_date = root_dir / "backtests" / symbol / interval / "by-date" / run_date
 
     decision_rows = _decision_record_rows(results, interval=interval)
-    candles_payload = candles_to_rows(candles)
+    candles_payload = candles_to_rows(candles, source=source)
     decisions_payload = {"decision_records": decision_rows}
     markers_payload = {"markers": _markers_from_decision_rows(decision_rows)}
 
@@ -228,4 +229,47 @@ def write_decision_records(output_dir: Path, results: list[BacktestResult], *, i
     path = output_dir / "decision-records.json"
     payload = {"decision_records": _decision_record_rows(results, interval=interval)}
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def write_technical_candidates(output_dir: Path, candidates_by_symbol: dict[str, list[dict]]) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    rows: list[dict] = []
+    for symbol in sorted(candidates_by_symbol):
+        rows.extend(candidates_by_symbol[symbol])
+    path = output_dir / "technical-candidates.json"
+    path.write_text(json.dumps({"technical_candidates": rows}, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def write_news_coverage(output_dir: Path, coverage_by_symbol: dict[str, dict]) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "news-coverage.json"
+    path.write_text(json.dumps({"symbols": coverage_by_symbol}, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def write_candidate_markers(output_dir: Path, candidates_by_symbol: dict[str, list[dict]]) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    markers: list[dict] = []
+    for symbol in sorted(candidates_by_symbol):
+        for row in candidates_by_symbol[symbol]:
+            if row.get("candidate_type") == "none":
+                continue
+            markers.append(
+                {
+                    "symbol": row["symbol"],
+                    "date": row["date"],
+                    "timestamp_ms": row["timestamp_ms"],
+                    "action": "candidate",
+                    "label": "观察",
+                    "price": row["price"],
+                    "position": "inBar",
+                    "shape": "circle",
+                    "color": "#38bdf8",
+                    "candidate_type": row["candidate_type"],
+                }
+            )
+    path = output_dir / "candidate-markers.json"
+    path.write_text(json.dumps({"candidate_markers": markers}, indent=2, ensure_ascii=False), encoding="utf-8")
     return path

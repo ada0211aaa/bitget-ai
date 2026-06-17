@@ -5,11 +5,14 @@ from bitget_ai_backtest.backtester import backtest_symbol
 from bitget_ai_backtest.models import BacktestResult, Candle, DecisionRecord, StrategySignal, Trade
 from bitget_ai_backtest.reporting import (
     write_candles_snapshot,
+    write_candidate_markers,
     write_chart_markers,
     write_coverage,
     write_decision_records,
     write_normalized_artifacts,
+    write_news_coverage,
     write_report,
+    write_technical_candidates,
 )
 
 
@@ -143,6 +146,7 @@ def test_write_normalized_artifacts_writes_latest_and_by_date(tmp_path: Path) ->
         coverage={"symbols": {"AMDUSDT": {"rows": 1}}},
         report_text="# report\n",
         trades_csv="timestamp_ms,symbol,side,price,quantity,fee,reason\n",
+        source="yahoo_chart_daily",
     )
 
     assert (tmp_path / "market/AMDUSDT/1d/latest/candles.json").exists()
@@ -150,3 +154,68 @@ def test_write_normalized_artifacts_writes_latest_and_by_date(tmp_path: Path) ->
     assert (tmp_path / "backtests/AMDUSDT/1d/latest/markers.json").exists()
     assert (tmp_path / "backtests/AMDUSDT/1d/by-date/2026-06-15/report.md").exists()
     assert paths["market_latest"].name == "candles.json"
+    latest_candles = json.loads((tmp_path / "market/AMDUSDT/1d/latest/candles.json").read_text(encoding="utf-8"))
+    assert latest_candles[0]["source"] == "yahoo_chart_daily"
+
+
+def test_write_technical_candidates_writes_rows(tmp_path: Path) -> None:
+    rows = {
+        "AMDUSDT": [
+            {
+                "symbol": "AMDUSDT",
+                "date": "2026-06-15",
+                "timestamp_ms": 1781530200000,
+                "price": 549.5,
+                "candidate_type": "buy_watch",
+                "technical_reasons": ["price_above_ma50"],
+            }
+        ]
+    }
+
+    path = write_technical_candidates(tmp_path, rows)
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["technical_candidates"][0]["candidate_type"] == "buy_watch"
+
+
+def test_write_news_coverage_writes_symbol_coverage(tmp_path: Path) -> None:
+    path = write_news_coverage(
+        tmp_path,
+        {
+            "AMDUSDT": {
+                "symbol": "AMDUSDT",
+                "event_count": 3,
+                "start_date": "2026-06-01",
+                "end_date": "2026-06-15",
+                "coverage": "2026-06-01 -> 2026-06-15",
+                "fetched_at": "2026-06-17T09:00:00Z",
+            }
+        },
+    )
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["symbols"]["AMDUSDT"]["event_count"] == 3
+
+
+def test_write_candidate_markers_writes_distinct_observation_markers(tmp_path: Path) -> None:
+    path = write_candidate_markers(
+        tmp_path,
+        {
+            "AMDUSDT": [
+                {
+                    "symbol": "AMDUSDT",
+                    "date": "2026-06-15",
+                    "timestamp_ms": 1781530200000,
+                    "price": 549.5,
+                    "candidate_type": "buy_watch",
+                    "technical_reasons": ["price_above_ma50"],
+                }
+            ]
+        },
+    )
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    marker = payload["candidate_markers"][0]
+    assert marker["action"] == "candidate"
+    assert marker["label"] == "观察"
+    assert marker["color"] == "#38bdf8"
