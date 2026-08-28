@@ -10,7 +10,7 @@ The first deliverable is a requirements document for a minimal Bitget Playbook b
 
 Before starting work, follow the global rule chain:
 
-1. `/Users/ada/AGENTS.md`
+1. `/Users/ada/.codex/AGENTS.md`
 2. `/Users/ada/Documents/root rules/00-core/00-START-HERE.md`
 3. This project `AGENTS.md`
 4. Relevant root rules for trading, complex scripts, credentials, and implementation planning
