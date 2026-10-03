@@ -37,7 +37,6 @@ Before starting work, follow the global rule chain:
 ## Documentation
 
 - Requirements docs go under `docs/requirements/`.
-- AI session recaps go under `docs/ai-sessions/`.
 - Public-facing summary content can go in `README.md`.
 - Architecture docs go under `docs/architecture/`.
 - Bitget skill usage docs go under `docs/bitget-skills/`.
